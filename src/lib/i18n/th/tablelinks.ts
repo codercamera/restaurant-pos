@@ -29,6 +29,8 @@ const th: Record<string, string> = {
   "Back": "ย้อนกลับ",
   "Table QR code": "คิวอาร์โค้ดโต๊ะนี้",
   "Share": "แชร์",
+  "Turned off": "ปิดอยู่",
+  "More": "เพิ่มเติม",
   "Print": "พิมพ์",
 };
 export default th;
