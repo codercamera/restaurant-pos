@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { useLang } from "@/lib/i18n/client";
 import { formatMoney, round2 } from "@/lib/money";
 import type { SellableItem } from "@/lib/types";
 
@@ -18,6 +19,7 @@ export function OptionsDialog({
   onClose: () => void;
   onAdd: (picked: PickedOptions) => void;
 }) {
+  const { t } = useLang();
   const [selected, setSelected] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {};
     for (const g of item.groups) {
@@ -80,7 +82,7 @@ export function OptionsDialog({
             <h2 id="opt-title" className="font-display text-2xl font-bold">{item.name}</h2>
             {item.description && <p className="mt-1 text-muted">{item.description}</p>}
           </div>
-          <button ref={firstRef} type="button" onClick={onClose} aria-label="Close" className="size-11 shrink-0 rounded-xl bg-ground flex items-center justify-center">
+          <button ref={firstRef} type="button" onClick={onClose} aria-label={t("Close")} className="size-11 shrink-0 rounded-xl bg-ground flex items-center justify-center">
             <Icon name="close" size={18} />
           </button>
         </div>
@@ -90,8 +92,8 @@ export function OptionsDialog({
             const req = g.is_required || g.min_select > 0;
             const hint =
               g.selection_type === "single"
-                ? req ? "Choose 1" : "Optional · choose 1"
-                : `${req ? `Choose at least ${Math.max(1, g.min_select)}` : "Optional"}${g.max_select ? ` · up to ${g.max_select}` : ""}`;
+                ? req ? t("Choose 1") : t("Optional · choose 1")
+                : `${req ? t("Choose at least {n}", { n: Math.max(1, g.min_select) }) : t("Optional")}${g.max_select ? ` · ${t("up to {n}", { n: g.max_select })}` : ""}`;
             return (
               <fieldset key={g.id} className="flex flex-col gap-2.5">
                 <legend className="mb-2.5 flex w-full items-baseline justify-between">
@@ -127,13 +129,13 @@ export function OptionsDialog({
             );
           })}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="line-note" className="text-[15px] font-bold">Note for the kitchen</label>
+            <label htmlFor="line-note" className="text-[15px] font-bold">{t("Note for the kitchen")}</label>
             <input
               id="line-note"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={140}
-              placeholder="e.g. no onions, sauce on the side"
+              placeholder={t("e.g. no onions, sauce on the side")}
               className="h-12 rounded-[10px] border border-line-2 px-3.5 text-[15px] outline-none focus:border-ink"
             />
           </div>
@@ -141,11 +143,11 @@ export function OptionsDialog({
 
         <div className="flex items-center gap-3 border-t border-line p-5">
           <div className="flex items-center gap-1 rounded-[10px] bg-ground p-0.5">
-            <button type="button" aria-label="Fewer" onClick={() => setQty((q) => Math.max(1, q - 1))} className="size-11 rounded-lg flex items-center justify-center">
+            <button type="button" aria-label={t("Fewer")} onClick={() => setQty((q) => Math.max(1, q - 1))} className="size-11 rounded-lg flex items-center justify-center">
               <Icon name="minus" size={16} stroke={2.2} />
             </button>
             <span className="w-8 text-center font-mono text-base font-semibold">{qty}</span>
-            <button type="button" aria-label="More" onClick={() => setQty((q) => Math.min(99, q + 1))} className="size-11 rounded-lg flex items-center justify-center">
+            <button type="button" aria-label={t("More")} onClick={() => setQty((q) => Math.min(99, q + 1))} className="size-11 rounded-lg flex items-center justify-center">
               <Icon name="plus" size={16} stroke={2.2} />
             </button>
           </div>
@@ -155,7 +157,7 @@ export function OptionsDialog({
             onClick={() => onAdd({ choiceIds: chosen.map((c) => c.id), choiceNames: chosen.map((c) => c.name), extra, quantity: qty, notes: notes.trim() })}
             className="grow h-14 rounded-xl bg-accent text-white text-base font-bold disabled:bg-line-2 disabled:text-muted-2 hover:bg-accent-dark"
           >
-            {problems.length ? `Choose ${problems.join(", ")}` : `Add ${qty} · ${formatMoney(unit * qty, currency)}`}
+            {problems.length ? t("Choose {names}", { names: problems.join(", ") }) : t("Add {qty} · {price}", { qty, price: formatMoney(unit * qty, currency) })}
           </button>
         </div>
       </div>

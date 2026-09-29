@@ -1,9 +1,12 @@
 import "server-only";
 import { newId, stmt, type Stmt } from "@/lib/db";
+import { TH_CATEGORY, TH_CHOICE, TH_GROUP, TH_ITEM } from "@/lib/seed-th";
 
 // Sample menu + floor plan for a new restaurant. All values are constants defined here,
 // so they are safe to inline as SQL literals (D1 allows only 100 bound parameters per query).
 const lit = (s: string | number | null) => (s === null ? "null" : typeof s === "number" ? String(s) : `'${s.replace(/'/g, "''")}'`);
+
+const litN = (s: string | undefined) => lit(s ?? null);
 
 const CATEGORIES = ["Burgers", "Pizza", "Bowls", "Sides", "Drinks", "Desserts"];
 
@@ -65,7 +68,7 @@ const TABLES: [name: string, zone: string, seats: number, shape: "round" | "rect
 /** Statements that create the sample menu, options and tables. Run them in the same batch as the company/branch. */
 export function seedStatements(companyId: string, branchId: string): Stmt[] {
   const catId = new Map(CATEGORIES.map((c) => [c, newId()]));
-  const catRows = CATEGORIES.map((c, i) => `(${lit(catId.get(c)!)}, ${lit(companyId)}, ${lit(c)}, ${i + 1})`);
+  const catRows = CATEGORIES.map((c, i) => `(${lit(catId.get(c)!)}, ${lit(companyId)}, ${lit(c)}, ${litN(TH_CATEGORY[c])}, ${i + 1})`);
 
   const itemRows: string[] = [];
   const groupRows: string[] = [];
@@ -76,13 +79,13 @@ export function seedStatements(companyId: string, branchId: string): Stmt[] {
     const order = (perCat.get(cat) ?? 0) + 1;
     perCat.set(cat, order);
     const itemId = newId();
-    itemRows.push(`(${lit(itemId)}, ${lit(companyId)}, ${lit(catId.get(cat)!)}, ${lit(name)}, ${lit(description)}, ${price}, ${order})`);
+    itemRows.push(`(${lit(itemId)}, ${lit(companyId)}, ${lit(catId.get(cat)!)}, ${lit(name)}, ${lit(description)}, ${litN(TH_ITEM[name]?.[0])}, ${litN(TH_ITEM[name]?.[1])}, ${price}, ${order})`);
     for (const spec of GROUPS.filter((g) => g.match(item))) {
       spec.groups.forEach((g, gi) => {
         const groupId = newId();
-        groupRows.push(`(${lit(groupId)}, ${lit(itemId)}, ${lit(g.name)}, ${lit(g.type)}, ${g.required ? 1 : 0}, ${g.min}, ${g.max === null ? "null" : g.max}, ${gi + 1})`);
+        groupRows.push(`(${lit(groupId)}, ${lit(itemId)}, ${lit(g.name)}, ${litN(TH_GROUP[g.name])}, ${lit(g.type)}, ${g.required ? 1 : 0}, ${g.min}, ${g.max === null ? "null" : g.max}, ${gi + 1})`);
         g.choices.forEach(([cname, delta], ci) => {
-          choiceRows.push(`(${lit(newId())}, ${lit(groupId)}, ${lit(cname)}, ${delta}, ${ci + 1})`);
+          choiceRows.push(`(${lit(newId())}, ${lit(groupId)}, ${lit(cname)}, ${litN(TH_CHOICE[cname])}, ${delta}, ${ci + 1})`);
         });
       });
     }
@@ -94,10 +97,10 @@ export function seedStatements(companyId: string, branchId: string): Stmt[] {
   );
 
   return [
-    stmt(`insert into categories (id, company_id, name, sort_order) values ${catRows.join(", ")}`),
-    stmt(`insert into menu_items (id, company_id, category_id, name, description, base_price, sort_order) values ${itemRows.join(", ")}`),
-    stmt(`insert into option_groups (id, menu_item_id, name, selection_type, is_required, min_select, max_select, sort_order) values ${groupRows.join(", ")}`),
-    stmt(`insert into option_choices (id, option_group_id, name, price_delta, sort_order) values ${choiceRows.join(", ")}`),
+    stmt(`insert into categories (id, company_id, name, name_th, sort_order) values ${catRows.join(", ")}`),
+    stmt(`insert into menu_items (id, company_id, category_id, name, description, name_th, description_th, base_price, sort_order) values ${itemRows.join(", ")}`),
+    stmt(`insert into option_groups (id, menu_item_id, name, name_th, selection_type, is_required, min_select, max_select, sort_order) values ${groupRows.join(", ")}`),
+    stmt(`insert into option_choices (id, option_group_id, name, name_th, price_delta, sort_order) values ${choiceRows.join(", ")}`),
     stmt(`insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height) values ${tableRows.join(", ")}`),
   ];
 }

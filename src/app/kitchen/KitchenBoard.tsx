@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { LangToggle } from "@/components/LangToggle";
+import { useLang } from "@/lib/i18n/client";
 import { advanceTicket } from "./actions";
 
 export type Ticket = {
@@ -39,6 +41,7 @@ function stageOf(t: Ticket): Stage {
 }
 
 export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branchName: string }) {
+  const { t: tr, locale } = useLang();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState("all");
@@ -74,22 +77,22 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
     });
   };
 
-  const clock = new Date(now).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const clock = new Date(now).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="min-h-screen lg:h-screen bg-[#151412] text-[#f4f1ea] flex flex-col px-6 pt-5 pb-6 gap-[18px]">
       <header className="flex flex-wrap items-center gap-4">
-        <Link href="/order" aria-label="Back to POS" className="size-12 rounded-xl bg-[#2a2824] flex items-center justify-center">
+        <Link href="/order" aria-label={tr("Back to POS")} className="size-12 rounded-xl bg-[#2a2824] flex items-center justify-center">
           <Icon name="back" size={20} stroke={2} />
         </Link>
         <div className="flex flex-col gap-0.5">
-          <h1 className="font-display text-[28px] font-bold tracking-tight">Kitchen</h1>
+          <h1 className="font-display text-[28px] font-bold tracking-tight">{tr("Kitchen")}</h1>
           <div className="text-sm text-[#b5afa3]">
-            {branchName} · {visible.length} open tickets · {lateCount} running late (over {LATE_AFTER_MIN} min)
+            {branchName} · {tr("{n} open tickets", { n: visible.length })} · {tr("{n} running late (over {m} min)", { n: lateCount, m: LATE_AFTER_MIN })}
           </div>
         </div>
         <div className="grow" />
-        <div role="group" aria-label="Order type" className="flex flex-wrap gap-2">
+        <div role="group" aria-label={tr("Order type")} className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -98,11 +101,12 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
               onClick={() => setFilter(f.id)}
               className={`h-11 px-4 rounded-[10px] text-[15px] font-semibold border ${filter === f.id ? "bg-[#f4f1ea] text-[#1b1a17] border-[#f4f1ea]" : "bg-[#2a2824] text-[#e4ded2] border-[#3a3732]"}`}
             >
-              {f.label}
+              {tr(f.label)}
             </button>
           ))}
         </div>
         <div className="font-mono text-[26px] font-semibold pl-4" suppressHydrationWarning>{clock}</div>
+        <LangToggle className="size-12 rounded-xl bg-[#2a2824] text-[#f4f1ea] flex items-center justify-center" />
       </header>
 
       {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-2.5 font-semibold text-accent-text">{error}</p>}
@@ -114,15 +118,15 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
             <section key={col.id} className="min-h-0 flex flex-col gap-3 bg-[#1e1c19] rounded-[18px] p-3.5">
               <div className="flex items-center gap-2.5 px-1 pt-0.5">
                 <span className="size-2.5 rounded-full" style={{ background: col.dot }} />
-                <h2 className="grow text-[17px] font-bold">{col.label}</h2>
+                <h2 className="grow text-[17px] font-bold">{tr(col.label)}</h2>
                 <span className="min-w-[30px] h-[30px] px-2 rounded-full bg-[#2e2b27] font-mono text-[15px] font-semibold inline-flex items-center justify-center">{list.length}</span>
               </div>
               <div className="grow min-h-0 overflow-auto flex flex-col gap-3">
-                {list.length === 0 && <div className="py-10 text-center text-[#8e887c] text-[15px]">Nothing here</div>}
+                {list.length === 0 && <div className="py-10 text-center text-[#8e887c] text-[15px]">{tr("Nothing here")}</div>}
                 {list.map((t) => {
                   const secs = elapsed(t.since);
                   const late = col.id !== "ready" && secs >= LATE_AFTER_MIN * 60;
-                  const where = t.table ? `${TYPE_LABEL[t.type]} · T${t.table}` : `${TYPE_LABEL[t.type] ?? t.type}${t.customer ? ` · ${t.customer}` : ""}`;
+                  const where = t.table ? `${tr(TYPE_LABEL[t.type] ?? t.type)} · T${t.table}` : `${TYPE_LABEL[t.type] ? tr(TYPE_LABEL[t.type]) : t.type}${t.customer ? ` · ${t.customer}` : ""}`;
                   const shown = t.items.filter((i) => (col.id === "ready" ? i.status === "ready" : col.id === "cooking" ? i.status !== "ready" : true));
                   return (
                     <article key={t.orderId} className="shrink-0 bg-ground text-ink rounded-[14px] overflow-hidden flex flex-col">
@@ -156,7 +160,7 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
                           onClick={() => advance(t)}
                           className={`w-full h-[52px] rounded-xl text-base font-bold border-2 disabled:opacity-50 ${col.btn}`}
                         >
-                          {pending && busy === t.orderId ? "…" : col.action}
+                          {pending && busy === t.orderId ? "…" : tr(col.action)}
                         </button>
                       </div>
                     </article>

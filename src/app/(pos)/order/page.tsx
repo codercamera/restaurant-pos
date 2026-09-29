@@ -1,5 +1,6 @@
 import { ACTIVE_SQL, db, isUuid } from "@/lib/db";
 import { getContext } from "@/lib/session";
+import { getT } from "@/lib/i18n/server";
 import { loadSellableMenu } from "@/lib/menu";
 import { getOrder, getOrderItems } from "@/lib/orders";
 import type { DiningTable, Order, OrderItem } from "@/lib/types";
@@ -8,11 +9,12 @@ import { OrderScreen } from "./OrderScreen";
 export default async function OrderPage({ searchParams }: { searchParams: Promise<{ order?: string; table?: string }> }) {
   const sp = await searchParams;
   const ctx = await getContext();
+  const { lang } = await getT();
   const { branch, staff } = ctx;
   const tableParam = isUuid(sp.table) ? sp.table : null;
 
   const [{ categories, items }, tables] = await Promise.all([
-    loadSellableMenu(ctx),
+    loadSellableMenu(ctx, lang),
     db.q<Pick<DiningTable, "id" | "name" | "zone" | "seats">>(
       "select id, name, zone, seats from dining_tables where branch_id = ?1 and is_active = 1 order by zone, name",
       [branch.id]
@@ -33,7 +35,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   let orderItems: OrderItem[] = [];
   if (orderId) {
     order = await getOrder(orderId, branch.id);
-    if (order) orderItems = await getOrderItems(order.id);
+    if (order) orderItems = await getOrderItems(order.id, { lang });
   }
 
   return (

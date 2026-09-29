@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ACTIVE_SQL, db, isUuid, newId, NOW, ph, stmt, type Stmt } from "@/lib/db";
 import { actionError, getContext } from "@/lib/session";
+import { getT } from "@/lib/i18n/server";
 import { freeTableStmt, recalcOrder } from "@/lib/orders";
 import type { ActionResult, OrderType } from "@/lib/types";
 
@@ -33,29 +34,30 @@ function refresh() {
 export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ orderId: string }>> {
   try {
     const { staff, branch } = await getContext();
+    const { t } = await getT();
 
-    if (!["dine_in", "takeaway", "delivery"].includes(input.orderType)) return { ok: false, error: "Unknown order type" };
+    if (!["dine_in", "takeaway", "delivery"].includes(input.orderType)) return { ok: false, error: t("Unknown order type") };
     const lines = (input.lines ?? []).filter((l) => l && isUuid(l.menuItemId));
-    if (lines.length > 40) return { ok: false, error: "Too many items in one go — send this batch first, then add more." };
+    if (lines.length > 40) return { ok: false, error: t("Too many items in one go — send this batch first, then add more.") };
     for (const l of lines) {
-      if (!Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 99) return { ok: false, error: "Quantity must be 1–99" };
-      if ((l.choiceIds ?? []).some((c) => !isUuid(c))) return { ok: false, error: "Invalid option" };
+      if (!Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 99) return { ok: false, error: t("Quantity must be 1–99") };
+      if ((l.choiceIds ?? []).some((c) => !isUuid(c))) return { ok: false, error: t("Invalid option") };
     }
     const tableId = input.orderType === "dine_in" && isUuid(input.tableId) ? input.tableId : null;
-    if (input.orderId && !isUuid(input.orderId)) return { ok: false, error: "Order not found" };
+    if (input.orderId && !isUuid(input.orderId)) return { ok: false, error: t("Order not found") };
     const guests = input.guests && input.guests > 0 ? Math.min(99, Math.floor(input.guests)) : null;
     const customerName = input.customerName?.trim().slice(0, 80) || null;
     const notes = input.notes?.trim().slice(0, 280) || null;
 
     if (tableId) {
-      const t = await db.one("select 1 as x from dining_tables where id = ?1 and branch_id = ?2 and is_active = 1", [tableId, branch.id]);
-      if (!t) return { ok: false, error: "That table no longer exists" };
+      const tbl = await db.one("select 1 as x from dining_tables where id = ?1 and branch_id = ?2 and is_active = 1", [tableId, branch.id]);
+      if (!tbl) return { ok: false, error: t("That table no longer exists") };
     }
 
     // Resolve prices on the server (branch overrides applied)
     const itemIds = [...new Set(lines.map((l) => l.menuItemId))];
     const choiceIds = [...new Set(lines.flatMap((l) => l.choiceIds ?? []))];
-    if (choiceIds.length > 90) return { ok: false, error: "Too many options selected" };
+    if (choiceIds.length > 90) return { ok: false, error: t("Too many options selected") };
     const items = itemIds.length
       ? await db.q<{ id: string; name: string; price: number; is_available: boolean }>(
           `select mi.id, mi.name, coalesce(o.price, mi.base_price) as price, coalesce(o.is_available, mi.is_available) as is_available
@@ -77,12 +79,12 @@ export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ o
     const choiceMap = new Map(choices.map((c) => [c.id, c]));
     for (const l of lines) {
       const it = itemMap.get(l.menuItemId);
-      if (!it) return { ok: false, error: "A dish on this order no longer exists" };
-      if (!it.is_available) return { ok: false, error: `${it.name} is not available right now` };
+      if (!it) return { ok: false, error: t("A dish on this order no longer exists") };
+      if (!it.is_available) return { ok: false, error: t("{name} is not available right now", { name: it.name }) };
       for (const cid of l.choiceIds ?? []) {
         const ch = choiceMap.get(cid);
-        if (!ch || ch.menu_item_id !== l.menuItemId) return { ok: false, error: `An option for ${it.name} is no longer valid` };
-        if (!ch.is_available) return { ok: false, error: `${ch.name} is not available right now` };
+        if (!ch || ch.menu_item_id !== l.menuItemId) return { ok: false, error: t("An option for {name} is no longer valid", { name: it.name }) };
+        if (!ch.is_available) return { ok: false, error: t("{name} is not available right now", { name: ch.name }) };
       }
     }
 
@@ -97,13 +99,13 @@ export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ o
     }
     let isNew = false;
     if (!orderId) {
-      if (!lines.length) return { ok: false, error: "Add at least one dish" };
+      if (!lines.length) return { ok: false, error: t("Add at least one dish") };
       orderId = newId();
       isNew = true;
     } else {
       const cur = await db.one<{ status: string }>("select status from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);
-      if (!cur) return { ok: false, error: "Order not found" };
-      if (cur.status === "completed" || cur.status === "cancelled") return { ok: false, error: "This order is already closed" };
+      if (!cur) return { ok: false, error: t("Order not found") };
+      if (cur.status === "completed" || cur.status === "cancelled") return { ok: false, error: t("This order is already closed") };
     }
 
     const stmts: Stmt[] = [];
@@ -166,13 +168,14 @@ export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ o
 export async function voidItem(itemId: string): Promise<ActionResult> {
   try {
     const { branch } = await getContext();
-    if (!isUuid(itemId)) return { ok: false, error: "Item not found" };
+    const { t } = await getT();
+    if (!isUuid(itemId)) return { ok: false, error: t("Item not found") };
     const item = await db.one<{ order_id: string; status: string }>(
       "select oi.order_id, oi.status from order_items oi join orders o on o.id = oi.order_id where oi.id = ?1 and o.branch_id = ?2",
       [itemId, branch.id]
     );
-    if (!item) return { ok: false, error: "Item not found" };
-    if (item.status === "served") return { ok: false, error: "This item was already served" };
+    if (!item) return { ok: false, error: t("Item not found") };
+    if (item.status === "served") return { ok: false, error: t("This item was already served") };
     await db.run("update order_items set status = 'cancelled' where id = ?1", [itemId]);
     await recalcOrder(item.order_id, branch);
     refresh();
@@ -185,11 +188,12 @@ export async function voidItem(itemId: string): Promise<ActionResult> {
 export async function cancelOrder(orderId: string): Promise<ActionResult> {
   try {
     const { branch } = await getContext();
-    if (!isUuid(orderId)) return { ok: false, error: "Order not found" };
+    const { t } = await getT();
+    if (!isUuid(orderId)) return { ok: false, error: t("Order not found") };
     const o = await db.one<{ table_id: string | null }>("select table_id from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);
-    if (!o) return { ok: false, error: "Order not found" };
+    if (!o) return { ok: false, error: t("Order not found") };
     const paid = await db.one("select 1 as x from payments where order_id = ?1 limit 1", [orderId]);
-    if (paid) return { ok: false, error: "This order already has payments" };
+    if (paid) return { ok: false, error: t("This order already has payments") };
     await db.batch([
       stmt("update order_items set status = 'cancelled' where order_id = ?1 and status <> 'served'", orderId),
       stmt(`update orders set status = 'cancelled', closed_at = ${NOW} where id = ?1 and branch_id = ?2`, orderId, branch.id),

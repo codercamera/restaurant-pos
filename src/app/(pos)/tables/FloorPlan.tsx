@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { useLang } from "@/lib/i18n/client";
 import { formatMoney } from "@/lib/money";
 import type { DiningTable, TableStatus } from "@/lib/types";
 import { saveLayout, setTableStatus, type LayoutTable } from "./actions";
@@ -61,6 +62,7 @@ export function FloorPlan({
   currency: string;
   canEdit: boolean;
 }) {
+  const { t: tr } = useLang();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const zonesFromData = useMemo(() => {
@@ -220,15 +222,15 @@ export function FloorPlan({
       <main className="grow min-w-0 px-6 pt-5 pb-6 flex flex-col gap-4 lg:overflow-hidden">
         <header className="flex flex-wrap items-center gap-3">
           <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-[28px] font-bold tracking-tight">{edit ? "Edit floor plan" : "Floor plan"}</h1>
+            <h1 className="font-display text-[28px] font-bold tracking-tight">{edit ? tr("Edit floor plan") : tr("Floor plan")}</h1>
             <div className="text-sm text-muted">
               {edit
-                ? `${layout.length} tables · ${totalSeats} seats`
-                : `${tables.length} tables · ${counts.available ?? 0} available · ${occupied} occupied`}
+                ? tr("{n} tables · {s} seats", { n: layout.length, s: totalSeats })
+                : tr("{n} tables · {a} available · {o} occupied", { n: tables.length, a: counts.available ?? 0, o: occupied })}
             </div>
           </div>
           <div className="grow" />
-          <div role="tablist" aria-label="Area" className="flex flex-wrap p-1 bg-ground-2 rounded-xl gap-1">
+          <div role="tablist" aria-label={tr("Area")} className="flex flex-wrap p-1 bg-ground-2 rounded-xl gap-1">
             {zones.map((z) => (
               <button
                 key={z}
@@ -241,28 +243,28 @@ export function FloorPlan({
                 }}
                 className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${z === curZone ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
               >
-                {z}
+                {tr(z)}
               </button>
             ))}
           </div>
           {!edit && canEdit && (
             <button type="button" onClick={startEdit} className="h-12 px-4 rounded-xl border border-ink bg-panel text-[15px] font-bold flex items-center gap-2">
-              <Icon name="edit" size={18} /> Edit layout
+              <Icon name="edit" size={18} /> {tr("Edit layout")}
             </button>
           )}
           {edit && (
             <>
               <button type="button" onClick={() => addTable(true)} className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
-                <Icon name="plus" size={16} /> Round table
+                <Icon name="plus" size={16} /> {tr("Round table")}
               </button>
               <button type="button" onClick={() => addTable(false)} className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
-                <Icon name="plus" size={16} /> Long table
+                <Icon name="plus" size={16} /> {tr("Long table")}
               </button>
               <button type="button" onClick={() => setEdit(false)} disabled={pending} className="h-12 px-4 rounded-xl text-[15px] font-semibold text-muted-2">
-                Cancel
+                {tr("Cancel")}
               </button>
               <button type="button" onClick={save} disabled={pending} className="h-12 px-5 rounded-xl bg-accent text-white text-[15px] font-bold flex items-center gap-2 disabled:opacity-50 hover:bg-accent-dark">
-                <Icon name="check" size={18} stroke={2.4} /> {pending ? "Saving…" : "Save layout"}
+                <Icon name="check" size={18} stroke={2.4} /> {pending ? tr("Saving…") : tr("Save layout")}
               </button>
             </>
           )}
@@ -270,7 +272,7 @@ export function FloorPlan({
 
         {edit ? (
           <div className="flex flex-wrap items-center gap-4 text-[13px] font-semibold text-muted-2 min-h-5">
-            <span>Drag a table to move it · drag the dark corner to resize · snaps to {GRID}px</span>
+            <span>{tr("Drag a table to move it · drag the dark corner to resize · snaps to {n}px", { n: GRID })}</span>
             <form
               className="flex items-center gap-2"
               onSubmit={(e) => {
@@ -282,9 +284,9 @@ export function FloorPlan({
                 setNewZone("");
               }}
             >
-              <label htmlFor="new-zone" className="sr-only">New area name</label>
-              <input id="new-zone" value={newZone} onChange={(e) => setNewZone(e.target.value)} placeholder="New area, e.g. Patio" className="h-9 w-44 rounded-lg border border-line bg-panel px-2.5 text-[13px] outline-none focus:border-ink" />
-              <button type="submit" className="h-9 px-3 rounded-lg bg-strong text-on-strong text-[13px] font-bold">Add area</button>
+              <label htmlFor="new-zone" className="sr-only">{tr("New area name")}</label>
+              <input id="new-zone" value={newZone} onChange={(e) => setNewZone(e.target.value)} placeholder={tr("New area, e.g. Patio")} className="h-9 w-44 rounded-lg border border-line bg-panel px-2.5 text-[13px] outline-none focus:border-ink" />
+              <button type="submit" className="h-9 px-3 rounded-lg bg-strong text-on-strong text-[13px] font-bold">{tr("Add area")}</button>
             </form>
           </div>
         ) : (
@@ -292,7 +294,7 @@ export function FloorPlan({
             {LEGEND.filter((k) => k === "available" || counts[k]).map((k) => (
               <span key={k} className="inline-flex items-center gap-2">
                 <span className="size-3.5 rounded" style={{ background: LOOKS[k].bg, border: `2px ${LOOKS[k].dashed ? "dashed" : "solid"} ${LOOKS[k].border}` }} />
-                {LOOKS[k].label} <span className="font-mono text-ink">{counts[k] ?? 0}</span>
+                {tr(LOOKS[k].label)} <span className="font-mono text-ink">{counts[k] ?? 0}</span>
               </span>
             ))}
           </div>
@@ -318,7 +320,7 @@ export function FloorPlan({
           >
             {zoneTables.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center text-muted pointer-events-none">
-                {edit ? "Add a table from the top bar." : canEdit ? "No tables in this area yet — use Edit layout to add some." : "No tables in this area yet."}
+                {edit ? tr("Add a table from the top bar.") : canEdit ? tr("No tables in this area yet — use Edit layout to add some.") : tr("No tables in this area yet.")}
               </div>
             )}
             {edit
@@ -331,7 +333,7 @@ export function FloorPlan({
                       onPointerDown={grab(t, "move")}
                       onClick={() => setSel(t.key)}
                       aria-pressed={on}
-                      aria-label={`Table ${t.name}, ${t.seats} seats`}
+                      aria-label={tr("Table {name}, {seats} seats", { name: t.name, seats: t.seats })}
                       className="absolute flex flex-col items-center justify-center gap-0.5 select-none touch-none cursor-grab active:cursor-grabbing"
                       style={{
                         left: t.pos_x,
@@ -346,7 +348,7 @@ export function FloorPlan({
                       }}
                     >
                       <span className="font-display text-xl font-bold pointer-events-none">T{t.name}</span>
-                      <span className="text-xs font-semibold pointer-events-none">{t.seats} seats</span>
+                      <span className="text-xs font-semibold pointer-events-none">{tr("{n} seats", { n: t.seats })}</span>
                       {on && (
                         <span
                           aria-hidden="true"
@@ -368,7 +370,7 @@ export function FloorPlan({
                       type="button"
                       onClick={() => setSel(t.id)}
                       aria-pressed={on}
-                      aria-label={`Table ${t.name}, ${look.label}`}
+                      aria-label={tr("Table {name}, {status}", { name: t.name, status: tr(look.label) })}
                       className="absolute flex flex-col items-center justify-center gap-0.5"
                       style={{
                         left: t.pos_x ?? 0,
@@ -384,7 +386,7 @@ export function FloorPlan({
                       }}
                     >
                       <span className="font-display text-xl font-bold">T{t.name}</span>
-                      <span className="text-xs font-semibold">{o ? `${o.guests ?? "–"} · ${mins(o.createdAt)}m` : st === "available" ? `${t.seats} seats` : look.label}</span>
+                      <span className="text-xs font-semibold">{o ? `${o.guests ?? "–"} · ${tr("{n}m", { n: mins(o.createdAt) })}` : st === "available" ? tr("{n} seats", { n: t.seats }) : tr(look.label)}</span>
                     </button>
                   );
                 })}
@@ -392,41 +394,41 @@ export function FloorPlan({
         </div>
       </main>
 
-      <aside aria-label="Table details" className="w-full lg:w-[380px] shrink-0 bg-panel border-l border-line flex flex-col p-6 gap-[18px] lg:h-screen">
-        {!edit && !selTable && <div className="m-auto text-center text-muted text-[15px] leading-relaxed max-w-[260px]">Tap a table to see its order, seat guests or take payment.</div>}
+      <aside aria-label={tr("Table details")} className="w-full lg:w-[380px] shrink-0 bg-panel border-l border-line flex flex-col p-6 gap-[18px] lg:h-screen">
+        {!edit && !selTable && <div className="m-auto text-center text-muted text-[15px] leading-relaxed max-w-[260px]">{tr("Tap a table to see its order, seat guests or take payment.")}</div>}
 
         {!edit && selTable && (
           <>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-[30px] font-bold">Table {selTable.name}</h2>
+              <h2 className="font-display text-[30px] font-bold">{tr("Table {name}", { name: selTable.name })}</h2>
               <span
                 className="text-[13px] font-bold px-3 py-1.5 rounded-full"
                 style={{ background: LOOKS[selStatus].bg, color: LOOKS[selStatus].fg, border: `1px solid ${LOOKS[selStatus].border}` }}
               >
-                {LOOKS[selStatus].label}
+                {tr(LOOKS[selStatus].label)}
               </span>
             </div>
             <dl className="grid grid-cols-2 gap-3">
-              <Stat label="Guests" value={selOrder ? `${selOrder.guests ?? "–"}/${selTable.seats}` : `– /${selTable.seats}`} />
-              <Stat label="Seated" value={selOrder ? `${mins(selOrder.createdAt)} min` : "—"} />
-              <Stat label="Order" value={selOrder ? `#${selOrder.number}` : "—"} />
-              <Stat label="Check" value={selOrder ? money(selOrder.total) : "—"} />
+              <Stat label={tr("Guests")} value={selOrder ? `${selOrder.guests ?? "–"}/${selTable.seats}` : `– /${selTable.seats}`} />
+              <Stat label={tr("Seated")} value={selOrder ? tr("{n} min", { n: mins(selOrder.createdAt) }) : "—"} />
+              <Stat label={tr("Order")} value={selOrder ? `#${selOrder.number}` : "—"} />
+              <Stat label={tr("Check")} value={selOrder ? money(selOrder.total) : "—"} />
             </dl>
             <div className="grow min-h-0 overflow-auto flex flex-col">
               {selOrder && selOrder.items.length > 0 ? (
                 <>
-                  <div className="text-[13px] font-bold uppercase tracking-[0.06em] text-muted pb-1.5">On the check</div>
+                  <div className="text-[13px] font-bold uppercase tracking-[0.06em] text-muted pb-1.5">{tr("On the check")}</div>
                   {selOrder.items.map((i, idx) => (
                     <div key={idx} className="flex gap-3 py-3 border-b border-hair text-[15px]">
                       <span className="font-mono text-muted w-7">{i.quantity}×</span>
                       <span className="grow font-semibold">{i.item_name}</span>
-                      <span className="text-[13px] font-semibold capitalize text-muted-2">{i.status === "pending" ? "sent" : i.status}</span>
+                      <span className="text-[13px] font-semibold capitalize text-muted-2">{tr(i.status === "pending" ? "sent" : i.status)}</span>
                     </div>
                   ))}
                 </>
               ) : (
                 <div className="m-auto text-center text-muted text-[15px] leading-relaxed">
-                  {selOrder ? "Guests seated. No items yet." : "Table is free. Start an order to seat guests."}
+                  {selOrder ? tr("Guests seated. No items yet.") : tr("Table is free. Start an order to seat guests.")}
                 </div>
               )}
             </div>
@@ -435,11 +437,11 @@ export function FloorPlan({
                 href={selOrder ? `/order?order=${selOrder.id}` : `/order?table=${selTable.id}`}
                 className="h-14 rounded-xl bg-accent text-white text-base font-bold flex items-center justify-center hover:bg-accent-dark"
               >
-                {selOrder ? "Open order" : "Start order"}
+                {selOrder ? tr("Open order") : tr("Start order")}
               </Link>
               {selOrder ? (
                 <Link href={`/checkout/${selOrder.id}`} className="h-12 rounded-xl border border-line text-sm font-semibold flex items-center justify-center">
-                  Take payment
+                  {tr("Take payment")}
                 </Link>
               ) : (
                 <div className="flex gap-2.5">
@@ -451,7 +453,7 @@ export function FloorPlan({
                       onClick={() => setStatus(selTable.id, s)}
                       className="flex-1 h-12 rounded-xl border border-line bg-panel text-[13px] font-semibold disabled:opacity-40"
                     >
-                      {s === "available" ? "Mark free" : s === "reserved" ? "Reserve" : "Needs cleaning"}
+                      {s === "available" ? tr("Mark free") : s === "reserved" ? tr("Reserve") : tr("Needs cleaning")}
                     </button>
                   ))}
                 </div>
@@ -462,18 +464,18 @@ export function FloorPlan({
 
         {edit && !selEdit && (
           <div className="m-auto text-center text-muted text-[15px] leading-relaxed max-w-[260px]">
-            Select a table to change its name, seats, shape, size or position — or add a new one from the top bar.
+            {tr("Select a table to change its name, seats, shape, size or position — or add a new one from the top bar.")}
           </div>
         )}
 
         {edit && selEdit && (
           <>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-[26px] font-bold">Edit table</h2>
-              <span className="text-[13px] font-bold px-3 py-1.5 rounded-full bg-hair">{layout.length} tables</span>
+              <h2 className="font-display text-[26px] font-bold">{tr("Edit table")}</h2>
+              <span className="text-[13px] font-bold px-3 py-1.5 rounded-full bg-hair">{tr("{n} tables", { n: layout.length })}</span>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="t-name" className="text-[13px] font-bold text-muted-2">Table name</label>
+              <label htmlFor="t-name" className="text-[13px] font-bold text-muted-2">{tr("Table name")}</label>
               <input
                 id="t-name"
                 value={selEdit.name}
@@ -483,7 +485,7 @@ export function FloorPlan({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <div className="text-[13px] font-bold text-muted-2">Shape</div>
+              <div className="text-[13px] font-bold text-muted-2">{tr("Shape")}</div>
               <div className="grid grid-cols-2 gap-2">
                 {(["round", "rect"] as const).map((s) => (
                   <button
@@ -495,21 +497,21 @@ export function FloorPlan({
                     }
                     className={`h-12 rounded-[10px] border text-[15px] font-semibold ${selEdit.shape === s ? "bg-strong text-on-strong border-strong" : "bg-panel border-line"}`}
                   >
-                    {s === "round" ? "Round" : "Rectangle"}
+                    {s === "round" ? tr("Round") : tr("Rectangle")}
                   </button>
                 ))}
               </div>
             </div>
             <div className="flex flex-col gap-2 grow min-h-0 overflow-auto">
-              <Stepper label="Seats" value={`${selEdit.seats}`} onDec={() => update(selEdit.key, { seats: Math.max(1, selEdit.seats - 1) })} onInc={() => update(selEdit.key, { seats: Math.min(40, selEdit.seats + 1) })} />
-              <Stepper label={selEdit.shape === "round" ? "Diameter" : "Width"} value={`${selEdit.width} px`} onDec={() => update(selEdit.key, { width: selEdit.width - GRID })} onInc={() => update(selEdit.key, { width: selEdit.width + GRID })} />
+              <Stepper label={tr("Seats")} value={`${selEdit.seats}`} onDec={() => update(selEdit.key, { seats: Math.max(1, selEdit.seats - 1) })} onInc={() => update(selEdit.key, { seats: Math.min(40, selEdit.seats + 1) })} />
+              <Stepper label={selEdit.shape === "round" ? tr("Diameter") : tr("Width")} value={`${selEdit.width} px`} onDec={() => update(selEdit.key, { width: selEdit.width - GRID })} onInc={() => update(selEdit.key, { width: selEdit.width + GRID })} />
               {selEdit.shape === "rect" && (
-                <Stepper label="Depth" value={`${selEdit.height} px`} onDec={() => update(selEdit.key, { height: selEdit.height - GRID })} onInc={() => update(selEdit.key, { height: selEdit.height + GRID })} />
+                <Stepper label={tr("Depth")} value={`${selEdit.height} px`} onDec={() => update(selEdit.key, { height: selEdit.height - GRID })} onInc={() => update(selEdit.key, { height: selEdit.height + GRID })} />
               )}
-              <Stepper label="Position X" value={`${selEdit.pos_x} px`} onDec={() => update(selEdit.key, { pos_x: selEdit.pos_x - GRID })} onInc={() => update(selEdit.key, { pos_x: selEdit.pos_x + GRID })} />
-              <Stepper label="Position Y" value={`${selEdit.pos_y} px`} onDec={() => update(selEdit.key, { pos_y: selEdit.pos_y - GRID })} onInc={() => update(selEdit.key, { pos_y: selEdit.pos_y + GRID })} />
+              <Stepper label={tr("Position X")} value={`${selEdit.pos_x} px`} onDec={() => update(selEdit.key, { pos_x: selEdit.pos_x - GRID })} onInc={() => update(selEdit.key, { pos_x: selEdit.pos_x + GRID })} />
+              <Stepper label={tr("Position Y")} value={`${selEdit.pos_y} px`} onDec={() => update(selEdit.key, { pos_y: selEdit.pos_y - GRID })} onInc={() => update(selEdit.key, { pos_y: selEdit.pos_y + GRID })} />
               <div className="flex flex-col gap-1.5 pt-1">
-                <label htmlFor="t-zone" className="text-[13px] font-bold text-muted-2">Area</label>
+                <label htmlFor="t-zone" className="text-[13px] font-bold text-muted-2">{tr("Area")}</label>
                 <select
                   id="t-zone"
                   value={selEdit.zone}
@@ -520,7 +522,7 @@ export function FloorPlan({
                   className="h-11 rounded-[10px] border border-line bg-panel px-3 text-sm font-semibold"
                 >
                   {zones.map((z) => (
-                    <option key={z} value={z}>{z}</option>
+                    <option key={z} value={z}>{tr(z)}</option>
                   ))}
                 </select>
               </div>
@@ -535,11 +537,11 @@ export function FloorPlan({
                 }}
                 className="h-12 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center justify-center gap-2"
               >
-                <Icon name="copy" size={18} /> Duplicate table
+                <Icon name="copy" size={18} /> {tr("Duplicate table")}
               </button>
               {selEdit.id && orderByTable.has(selEdit.id) ? (
                 <p className="rounded-xl bg-ground px-3.5 py-3 text-sm text-muted-2 leading-snug">
-                  This table has an open order, so it can&apos;t be removed. You can still move or resize it.
+                  {tr("This table has an open order, so it can't be removed. You can still move or resize it.")}
                 </p>
               ) : (
                 <button
@@ -551,7 +553,7 @@ export function FloorPlan({
                   }}
                   className="h-12 rounded-xl border border-accent/40 bg-accent-soft text-accent-text text-[15px] font-bold flex items-center justify-center gap-2"
                 >
-                  <Icon name="trash" size={18} /> Delete table
+                  <Icon name="trash" size={18} /> {tr("Delete table")}
                 </button>
               )}
             </div>
@@ -572,15 +574,16 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function Stepper({ label, value, onDec, onInc }: { label: string; value: string; onDec: () => void; onInc: () => void }) {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-2.5">
       <span className="grow text-[15px] font-semibold">{label}</span>
       <div className="flex items-center gap-0.5 bg-ground rounded-[10px] p-0.5">
-        <button type="button" onClick={onDec} aria-label={`Decrease ${label.toLowerCase()}`} className="size-11 rounded-lg flex items-center justify-center">
+        <button type="button" onClick={onDec} aria-label={t("Decrease {label}", { label: label.toLowerCase() })} className="size-11 rounded-lg flex items-center justify-center">
           <Icon name="minus" size={16} stroke={2.2} />
         </button>
         <span className="w-[76px] text-center font-mono text-[15px] font-semibold">{value}</span>
-        <button type="button" onClick={onInc} aria-label={`Increase ${label.toLowerCase()}`} className="size-11 rounded-lg flex items-center justify-center">
+        <button type="button" onClick={onInc} aria-label={t("Increase {label}", { label: label.toLowerCase() })} className="size-11 rounded-lg flex items-center justify-center">
           <Icon name="plus" size={16} stroke={2.2} />
         </button>
       </div>

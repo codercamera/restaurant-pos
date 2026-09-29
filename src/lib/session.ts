@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { getSessionStaff } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getT } from "@/lib/i18n/server";
 import type { Branch } from "@/lib/types";
 
 /** Signed-in staff member + their branch. Redirects to /login when missing. */
@@ -26,9 +27,10 @@ export function canManage(role: string) {
 }
 
 /** For server actions: let Next.js redirects/notFound propagate, turn other errors into messages. */
-export function actionError(e: unknown): { ok: false; error: string } {
+export async function actionError(e: unknown, t?: (key: string) => string): Promise<{ ok: false; error: string }> {
   if (e && typeof e === "object" && "digest" in e) throw e;
+  const tr = t ?? (await getT()).t;
   console.error(e);
   const msg = e instanceof Error ? e.message : "Something went wrong";
-  return { ok: false, error: /UNIQUE constraint/i.test(msg) ? "That was just taken by someone else — please try again." : msg };
+  return { ok: false, error: tr(/UNIQUE constraint/i.test(msg) ? "That was just taken by someone else — please try again." : msg) };
 }

@@ -5,6 +5,7 @@ import { db, isUuid, newId, NOW, stmt, type Stmt } from "@/lib/db";
 import { actionError, getContext } from "@/lib/session";
 import { freeTableStmt, getOrder, getOrderItems, lineTotal, paidAmount, recalcOrder } from "@/lib/orders";
 import { round2 } from "@/lib/money";
+import { getT } from "@/lib/i18n/server";
 import type { ActionResult, PaymentMethod } from "@/lib/types";
 
 export type PaymentInput = {
@@ -20,15 +21,16 @@ export type PaymentResult = { completed: boolean; remaining: number; change: num
 export async function takePayment(input: PaymentInput): Promise<ActionResult<PaymentResult>> {
   try {
     const { staff, branch } = await getContext();
-    if (!isUuid(input.orderId)) return { ok: false, error: "Order not found" };
-    if (!["cash", "card", "qr_promptpay", "other"].includes(input.method)) return { ok: false, error: "Unknown payment method" };
+    const { t } = await getT();
+    if (!isUuid(input.orderId)) return { ok: false, error: t("Order not found") };
+    if (!["cash", "card", "qr_promptpay", "other"].includes(input.method)) return { ok: false, error: t("Unknown payment method") };
 
     const o = await db.one<{ status: string; table_id: string | null }>(
       "select status, table_id from orders where id = ?1 and branch_id = ?2",
       [input.orderId, branch.id]
     );
-    if (!o) return { ok: false, error: "Order not found" };
-    if (o.status === "completed" || o.status === "cancelled") return { ok: false, error: "This order is already closed" };
+    if (!o) return { ok: false, error: t("Order not found") };
+    if (o.status === "completed" || o.status === "cancelled") return { ok: false, error: t("This order is already closed") };
 
     let paid = await paidAmount(input.orderId);
     // Tip can only change before the first payment.
@@ -37,16 +39,16 @@ export async function takePayment(input: PaymentInput): Promise<ActionResult<Pay
     }
     const totals = await recalcOrder(input.orderId, branch);
     const remainingBefore = round2(totals.grand - paid);
-    if (remainingBefore <= 0) return { ok: false, error: "Nothing left to pay" };
+    if (remainingBefore <= 0) return { ok: false, error: t("Nothing left to pay") };
 
     const amount = round2(Math.min(Number(input.amount) || 0, remainingBefore));
-    if (amount <= 0) return { ok: false, error: "Enter an amount to charge" };
+    if (amount <= 0) return { ok: false, error: t("Enter an amount to charge") };
 
     let received: number | null = null;
     let change = 0;
     if (input.method === "cash") {
       received = round2(Number(input.received ?? amount));
-      if (received < amount) return { ok: false, error: "Cash received is less than the amount due" };
+      if (received < amount) return { ok: false, error: t("Cash received is less than the amount due") };
       change = round2(received - amount);
     }
 
@@ -68,6 +70,8 @@ export async function takePayment(input: PaymentInput): Promise<ActionResult<Pay
     if (completed) {
       const order = await getOrder(input.orderId, branch.id);
       const items = await getOrderItems(input.orderId, { excludeCancelled: true });
+      const itemsTh = await getOrderItems(input.orderId, { lang: "th", excludeCancelled: true });
+      const thById = new Map(itemsTh.map((x) => [x.id, x]));
       const previous = await db.q<{ method: string; amount: number; received_amount: number | null; change_amount: number | null; paid_at: string }>(
         "select method, amount, received_amount, change_amount, paid_at from payments where order_id = ?1 order by paid_at",
         [input.orderId]
@@ -75,13 +79,18 @@ export async function takePayment(input: PaymentInput): Promise<ActionResult<Pay
       const snapshot = {
         branch: { name: branch.name, currency: branch.currency, tax_rate: branch.tax_rate, service_charge_rate: branch.service_charge_rate },
         order: { ...order, status: "completed", closed_at: paidAt },
-        items: items.map((i) => ({
-          name: i.item_name,
-          quantity: i.quantity,
-          unit_price: i.unit_price,
-          options: i.order_item_options.map((x) => ({ name: x.choice_name, price_delta: x.price_delta })),
-          total: lineTotal(i),
-        })),
+        items: items.map((i) => {
+          const th = thById.get(i.id);
+          const thOpts = new Map((th?.order_item_options ?? []).map((x) => [x.id, x.choice_name]));
+          return {
+            name: i.item_name,
+            name_th: th?.item_name,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+            options: i.order_item_options.map((x) => ({ name: x.choice_name, name_th: thOpts.get(x.id), price_delta: x.price_delta })),
+            total: lineTotal(i),
+          };
+        }),
         payments: [
           ...previous,
           { method: input.method, amount, received_amount: received, change_amount: input.method === "cash" ? change : null, paid_at: paidAt },

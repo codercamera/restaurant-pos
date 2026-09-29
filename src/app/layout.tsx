@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono, Noto_Sans_Thai } from "next/font/google";
+import { LangProvider } from "@/lib/i18n/client";
+import { getLang } from "@/lib/i18n/server";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", weight: ["600", "700"] });
 const instrument = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument" });
+const notoThai = Noto_Sans_Thai({ subsets: ["thai"], variable: "--font-noto-thai", weight: ["400", "500", "600", "700"] });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
@@ -20,13 +23,16 @@ export const viewport: Viewport = {
 // Runs before first paint: saved choice, else the OS setting.
 const THEME_SCRIPT = `try{var t=localStorage.getItem("pos_theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){}`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
   return (
-    <html lang="en" suppressHydrationWarning className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}>
+    <html lang={lang} suppressHydrationWarning className={`${bricolage.variable} ${instrument.variable} ${notoThai.variable} ${jetbrains.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <LangProvider lang={lang}>{children}</LangProvider>
+      </body>
     </html>
   );
 }

@@ -1,24 +1,30 @@
 import "server-only";
 import { ACTIVE_SQL, db, stmt } from "@/lib/db";
 import { computeTotals, round2 } from "@/lib/money";
+import { loc, type Lang } from "@/lib/i18n";
 import type { Branch, Order, OrderItem } from "@/lib/types";
 
 export const ORDER_COLS =
   "o.id, o.branch_id, o.table_id, o.order_number, o.order_type, o.status, o.customer_name, o.customer_count, o.subtotal, o.discount_total, o.tax_total, o.service_charge_total, o.tip_total, o.grand_total, o.notes, o.created_at, o.closed_at";
 
-const OPTIONS_JSON = `coalesce((
-  select json_group_array(json_object('id', x.id, 'choice_name', x.choice_name, 'price_delta', x.price_delta, 'option_choice_id', x.option_choice_id))
+// Item/choice names are snapshots taken when the order was placed (English). For Thai we show the
+// current Thai name of the menu item / option choice when it still exists, else the snapshot.
+const optionsJson = (lang: Lang) => `coalesce((
+  select json_group_array(json_object('id', x.id, 'choice_name', ${lang === "th" ? "coalesce(nullif(ch.name_th, ''), x.choice_name)" : "x.choice_name"}, 'price_delta', x.price_delta, 'option_choice_id', x.option_choice_id))
     from (select * from order_item_options where order_item_id = oi.id order by rowid) x
+    left join option_choices ch on ch.id = x.option_choice_id
 ), '[]') as order_item_options`;
 
 export function getOrder(orderId: string, branchId: string) {
   return db.one<Order>(`select ${ORDER_COLS} from orders o where o.id = ?1 and o.branch_id = ?2`, [orderId, branchId]);
 }
 
-export function getOrderItems(orderId: string, opts: { excludeCancelled?: boolean } = {}) {
+export function getOrderItems(orderId: string, opts: { excludeCancelled?: boolean; lang?: Lang } = {}) {
+  const lang = opts.lang ?? "en";
   return db.q<OrderItem>(
-    `select oi.id, oi.order_id, oi.menu_item_id, oi.item_name, oi.unit_price, oi.quantity, oi.status, oi.notes, oi.created_at, ${OPTIONS_JSON}
+    `select oi.id, oi.order_id, oi.menu_item_id, ${lang === "th" ? "coalesce(nullif(mi.name_th, ''), oi.item_name)" : "oi.item_name"} as item_name, oi.unit_price, oi.quantity, oi.status, oi.notes, oi.created_at, ${optionsJson(lang)}
        from order_items oi
+       left join menu_items mi on mi.id = oi.menu_item_id
       where oi.order_id = ?1 ${opts.excludeCancelled ? "and oi.status <> 'cancelled'" : ""}
       order by oi.created_at, oi.rowid`,
     [orderId]

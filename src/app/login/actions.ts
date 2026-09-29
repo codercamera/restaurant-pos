@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 import { db, newId, stmt } from "@/lib/db";
+import { getT } from "@/lib/i18n/server";
 import { seedStatements } from "@/lib/seed";
 
 export type AuthState = { error?: string };
@@ -10,17 +11,18 @@ export type AuthState = { error?: string };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const { t } = await getT();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  if (!email || !password) return { error: "Enter your email and password." };
+  if (!email || !password) return { error: t("Enter your email and password.") };
 
   const staff = await db.one<{ id: string; password_hash: string | null; is_active: boolean }>(
     "select id, password_hash, is_active from staff where lower(email) = ?1",
     [email]
   );
   const ok = staff?.password_hash ? await verifyPassword(password, staff.password_hash) : false;
-  if (!staff || !ok) return { error: "That email and password don't match." };
-  if (!staff.is_active) return { error: "This account has been deactivated." };
+  if (!staff || !ok) return { error: t("That email and password don't match.") };
+  if (!staff.is_active) return { error: t("This account has been deactivated.") };
 
   await createSession(staff.id);
   redirect("/order");
@@ -28,19 +30,20 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
 /** Creates a restaurant (company + first branch) with the signer-up as owner. */
 export async function createRestaurant(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const { t } = await getT();
   const company = String(formData.get("company") ?? "").trim().slice(0, 80);
-  const branch = String(formData.get("branch") ?? "").trim().slice(0, 80) || "Main branch";
+  const branch = String(formData.get("branch") ?? "").trim().slice(0, 80) || t("Main branch");
   const fullName = String(formData.get("full_name") ?? "").trim().slice(0, 80);
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const withSample = formData.get("sample") === "on";
 
-  if (!company || !fullName) return { error: "Enter the restaurant name and your name." };
-  if (!EMAIL.test(email)) return { error: "Enter a valid email address." };
-  if (password.length < 8) return { error: "Use a password of at least 8 characters." };
+  if (!company || !fullName) return { error: t("Enter the restaurant name and your name.") };
+  if (!EMAIL.test(email)) return { error: t("Enter a valid email address.") };
+  if (password.length < 8) return { error: t("Use a password of at least 8 characters.") };
 
   const exists = await db.one("select 1 as x from staff where lower(email) = ?1", [email]);
-  if (exists) return { error: "An account with this email already exists. Sign in instead." };
+  if (exists) return { error: t("An account with this email already exists. Sign in instead.") };
 
   const hash = await hashPassword(password);
   const companyId = newId();

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getContext } from "@/lib/session";
 import { formatMoney, ORDER_TYPE_LABEL } from "@/lib/money";
+import { getT } from "@/lib/i18n/server";
+import { localeOf } from "@/lib/i18n";
 
 type Row = {
   id: string;
@@ -26,6 +28,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 
 export default async function OrdersPage() {
   const { branch } = await getContext();
+  const { t, lang } = await getT();
   const cols = `o.id, o.order_number, o.order_type, o.status, o.customer_name, o.grand_total, o.created_at, o.closed_at, t.name as table_name`;
   const [active, done] = await Promise.all([
     db.q<Row>(
@@ -42,11 +45,11 @@ export default async function OrdersPage() {
   ]);
   const takings = done.filter((o) => o.status === "completed").reduce((s, o) => s + Number(o.grand_total), 0);
   const money = (n: number) => formatMoney(n, branch.currency);
-  const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: branch.timezone });
+  const time = (iso: string) => new Date(iso).toLocaleTimeString(localeOf(lang), { hour: "2-digit", minute: "2-digit", timeZone: branch.timezone });
 
   const List = ({ rows, closed }: { rows: Row[]; closed?: boolean }) => (
     <div className="rounded-2xl border border-line bg-panel overflow-hidden">
-      {rows.length === 0 && <div className="p-8 text-center text-muted">{closed ? "No closed orders in the last 24 hours." : "No open orders. Start one from New order or Tables."}</div>}
+      {rows.length === 0 && <div className="p-8 text-center text-muted">{closed ? t("No closed orders in the last 24 hours.") : t("No open orders. Start one from New order or Tables.")}</div>}
       {rows.map((o) => {
         const st = STATUS[o.status] ?? STATUS.open;
         return (
@@ -57,12 +60,12 @@ export default async function OrdersPage() {
           >
             <span className="font-mono text-lg font-semibold w-16">#{o.order_number}</span>
             <span className="grow font-semibold">
-              {ORDER_TYPE_LABEL[o.order_type]}
-              {o.table_name ? ` · Table ${o.table_name}` : ""}
+              {t(ORDER_TYPE_LABEL[o.order_type])}
+              {o.table_name ? ` · ${t("Table {n}", { n: o.table_name })}` : ""}
               {o.customer_name ? ` · ${o.customer_name}` : ""}
             </span>
             <span className="text-sm text-muted w-24">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full w-24 text-center ${st.cls}`}>{st.label}</span>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full w-24 text-center ${st.cls}`}>{t(st.label)}</span>
             <span className="font-mono font-semibold w-28 text-right">{money(Number(o.grand_total))}</span>
           </Link>
         );
@@ -74,22 +77,22 @@ export default async function OrdersPage() {
     <main className="px-6 py-5 flex flex-col gap-6 max-w-[1100px]">
       <header className="flex flex-wrap items-end gap-4">
         <div>
-          <h1 className="font-display text-[28px] font-bold tracking-tight">Orders</h1>
+          <h1 className="font-display text-[28px] font-bold tracking-tight">{t("Orders")}</h1>
           <div className="text-sm text-muted">{branch.name}</div>
         </div>
         <div className="grow" />
         <div className="rounded-xl bg-panel border border-line px-4 py-2.5">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted">Paid · last 24h</div>
+          <div className="text-xs font-bold uppercase tracking-wider text-muted">{t("Paid · last 24h")}</div>
           <div className="font-mono text-xl font-semibold">{money(takings)}</div>
         </div>
-        <Link href="/order" className="h-12 px-5 rounded-xl bg-accent text-white font-bold flex items-center hover:bg-accent-dark">New order</Link>
+        <Link href="/order" className="h-12 px-5 rounded-xl bg-accent text-white font-bold flex items-center hover:bg-accent-dark">{t("New order")}</Link>
       </header>
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">Open · {active.length}</h2>
+        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">{t("Open")} · {active.length}</h2>
         <List rows={active} />
       </section>
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">Closed · last 24 hours</h2>
+        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">{t("Closed · last 24 hours")}</h2>
         <List rows={done} closed />
       </section>
     </main>

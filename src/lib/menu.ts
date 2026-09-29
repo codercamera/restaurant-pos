@@ -1,18 +1,19 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { Ctx } from "@/lib/session";
+import { loc, type Lang } from "@/lib/i18n";
 import type { Category, OptionGroup, SellableItem } from "@/lib/types";
 
 /** Active categories and the items sold at this branch (branch overrides applied), with option groups. */
-export async function loadSellableMenu(ctx: Ctx) {
+export async function loadSellableMenu(ctx: Ctx, lang: Lang = "en") {
   const { staff, branch } = ctx;
   const [categories, rows, groups] = await Promise.all([
     db.q<Category>(
-      "select id, name, sort_order, is_active from categories where company_id = ?1 and is_active = 1 order by sort_order, name",
+      `select id, ${loc("name", lang)} as name, sort_order, is_active from categories where company_id = ?1 and is_active = 1 order by sort_order, name`,
       [staff.company_id]
     ),
     db.q<Omit<SellableItem, "groups">>(
-      `select mi.id, mi.category_id, mi.name, mi.description, mi.base_price, mi.image_url, mi.sort_order,
+      `select mi.id, mi.category_id, ${loc("mi.name", lang)} as name, ${loc("mi.description", lang)} as description, mi.base_price, mi.image_url, mi.sort_order,
               coalesce(o.price, mi.base_price) as price,
               coalesce(o.is_available, mi.is_available) as is_available
          from menu_items mi
@@ -22,7 +23,7 @@ export async function loadSellableMenu(ctx: Ctx) {
         order by mi.sort_order, mi.name`,
       [staff.company_id, branch.id]
     ),
-    loadOptionGroups(staff.company_id),
+    loadOptionGroups(staff.company_id, lang),
   ]);
 
   const byItem = new Map<string, OptionGroup[]>();
@@ -31,12 +32,12 @@ export async function loadSellableMenu(ctx: Ctx) {
   return { categories, items };
 }
 
-export function loadOptionGroups(companyId: string) {
+export function loadOptionGroups(companyId: string, lang: Lang = "en") {
   return db.q<OptionGroup>(
-    `select g.id, g.menu_item_id, g.name, g.selection_type, g.is_required, g.min_select, g.max_select, g.sort_order,
+    `select g.id, g.menu_item_id, ${loc("g.name", lang)} as name, g.selection_type, g.is_required, g.min_select, g.max_select, g.sort_order,
             coalesce((
               select json_group_array(json_object(
-                       'id', ch.id, 'option_group_id', ch.option_group_id, 'name', ch.name,
+                       'id', ch.id, 'option_group_id', ch.option_group_id, 'name', ${loc("ch.name", lang)},
                        'price_delta', ch.price_delta, 'is_available', json(iif(ch.is_available = 1, 'true', 'false')),
                        'sort_order', ch.sort_order))
                 from (select * from option_choices where option_group_id = g.id order by sort_order) ch

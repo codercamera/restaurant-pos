@@ -36,8 +36,8 @@
   --tbl-reserved-bg: #efeae0;   --tbl-reserved-fg: #1b1a17;   --tbl-reserved-border: #8e887c;
   --tbl-cleaning-bg: #f4f1ea;   --tbl-cleaning-fg: #5c574e;   --tbl-cleaning-border: #b9b1a1;
 
-  --font-display: var(--font-bricolage), Georgia, serif;
-  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-noto-thai), Georgia, serif;
+  --font-sans: var(--font-instrument), var(--font-noto-thai), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 

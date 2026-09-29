@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getT } from "@/lib/i18n/server";
 import { getContext } from "@/lib/session";
 import { KitchenBoard, type Ticket } from "./KitchenBoard";
 
@@ -20,11 +21,14 @@ type Row = {
 
 export default async function KitchenPage() {
   const { branch } = await getContext();
+  const { lang } = await getT();
+  const th = lang === "th";
   const rows = await db.q<Row>(
-    `select oi.id, oi.order_id, oi.item_name, oi.quantity, oi.status, oi.notes, oi.created_at,
-            coalesce((select json_group_array(x.choice_name) from (select choice_name from order_item_options where order_item_id = oi.id order by rowid) x), '[]') as options,
+    `select oi.id, oi.order_id, ${th ? "coalesce(nullif(mi.name_th, ''), oi.item_name)" : "oi.item_name"} as item_name, oi.quantity, oi.status, oi.notes, oi.created_at,
+            coalesce((select json_group_array(${th ? "coalesce(nullif(ch.name_th, ''), x.choice_name)" : "x.choice_name"}) from (select choice_name, option_choice_id from order_item_options where order_item_id = oi.id order by rowid) x${th ? " left join option_choices ch on ch.id = x.option_choice_id" : ""}), '[]') as options,
             o.order_number, o.order_type, o.customer_name, o.notes as order_notes, t.name as table_name
        from order_items oi
+       left join menu_items mi on mi.id = oi.menu_item_id
        join orders o on o.id = oi.order_id
        left join dining_tables t on t.id = o.table_id
       where o.branch_id = ?1 and oi.status in ('pending','preparing','ready')

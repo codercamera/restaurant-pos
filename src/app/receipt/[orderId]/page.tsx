@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { db, isUuid } from "@/lib/db";
 import { getContext } from "@/lib/session";
 import { formatMoney, ORDER_TYPE_LABEL } from "@/lib/money";
+import { getT } from "@/lib/i18n/server";
+import { localeOf, pick } from "@/lib/i18n";
 import { PrintButton } from "./PrintButton";
 
 type Snapshot = {
@@ -19,7 +21,7 @@ type Snapshot = {
     closed_at: string | null;
     created_at: string;
   };
-  items: { name: string; quantity: number; unit_price: number; options: { name: string; price_delta: number }[]; total: number }[];
+  items: { name: string; name_th?: string; quantity: number; unit_price: number; options: { name: string; name_th?: string; price_delta: number }[]; total: number }[];
   payments: { method: string; amount: number; received_amount: number | null; change_amount: number | null }[];
   cashier: string;
 };
@@ -29,6 +31,7 @@ const METHOD: Record<string, string> = { cash: "Cash", card: "Card", qr_promptpa
 export default async function ReceiptPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
   const { branch } = await getContext();
+  const { t, lang } = await getT();
   if (!isUuid(orderId)) notFound();
   const data = await db.one<{ receipt_number: string; snapshot: unknown; printed_at: string }>(
     `select r.receipt_number, r.snapshot, r.printed_at
@@ -42,21 +45,21 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
   const s = data.snapshot as Snapshot;
   const cur = s.branch?.currency ?? branch.currency;
   const m = (n: number) => formatMoney(Number(n), cur);
-  const when = new Date(s.order.closed_at ?? data.printed_at).toLocaleString("en-GB", { timeZone: branch.timezone });
+  const when = new Date(s.order.closed_at ?? data.printed_at).toLocaleString(localeOf(lang), { timeZone: branch.timezone });
 
   return (
     <main className="min-h-screen flex flex-col items-center gap-4 py-8 px-4">
       <div className="no-print flex gap-2">
-        <Link href="/orders" className="h-11 px-4 rounded-xl border border-line bg-panel font-semibold flex items-center">Back to orders</Link>
+        <Link href="/orders" className="h-11 px-4 rounded-xl border border-line bg-panel font-semibold flex items-center">{t("Back to orders")}</Link>
         <PrintButton />
       </div>
       <article className="w-[320px] bg-white p-5 font-mono text-[13px] leading-snug text-black shadow-sm print:shadow-none">
         <div className="text-center">
           <div className="text-base font-bold">{s.branch?.name ?? branch.name}</div>
-          <div>Receipt {data.receipt_number}</div>
+          <div>{t("Receipt")} {data.receipt_number}</div>
           <div>{when}</div>
           <div>
-            Order #{s.order.order_number} · {ORDER_TYPE_LABEL[s.order.order_type] ?? s.order.order_type}
+            {t("Order")} #{s.order.order_number} · {t(ORDER_TYPE_LABEL[s.order.order_type] ?? s.order.order_type)}
           </div>
         </div>
         <hr className="my-3 border-dashed border-black" />
@@ -64,37 +67,37 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
           <div key={idx} className="mb-1.5">
             <div className="flex justify-between gap-2">
               <span>
-                {i.quantity} × {i.name}
+                {i.quantity} × {pick(lang, i.name, i.name_th)}
               </span>
               <span>{m(i.total)}</span>
             </div>
-            {i.options.length > 0 && <div className="pl-4 text-[12px]">{i.options.map((o) => o.name).join(", ")}</div>}
+            {i.options.length > 0 && <div className="pl-4 text-[12px]">{i.options.map((o) => pick(lang, o.name, o.name_th)).join(", ")}</div>}
           </div>
         ))}
         <hr className="my-3 border-dashed border-black" />
-        <Line label="Subtotal" value={m(s.order.subtotal)} />
-        {Number(s.order.discount_total) > 0 && <Line label="Discount" value={`-${m(s.order.discount_total)}`} />}
-        {Number(s.order.service_charge_total) > 0 && <Line label={`Service ${s.branch.service_charge_rate}%`} value={m(s.order.service_charge_total)} />}
-        <Line label={`Tax ${s.branch?.tax_rate ?? ""}%`} value={m(s.order.tax_total)} />
-        {Number(s.order.tip_total) > 0 && <Line label="Tip" value={m(s.order.tip_total)} />}
+        <Line label={t("Subtotal")} value={m(s.order.subtotal)} />
+        {Number(s.order.discount_total) > 0 && <Line label={t("Discount")} value={`-${m(s.order.discount_total)}`} />}
+        {Number(s.order.service_charge_total) > 0 && <Line label={t("Service {rate}%", { rate: s.branch.service_charge_rate })} value={m(s.order.service_charge_total)} />}
+        <Line label={t("Tax {rate}%", { rate: s.branch?.tax_rate ?? "" })} value={m(s.order.tax_total)} />
+        {Number(s.order.tip_total) > 0 && <Line label={t("Tip")} value={m(s.order.tip_total)} />}
         <div className="flex justify-between font-bold text-[15px] mt-1">
-          <span>TOTAL</span>
+          <span>{t("TOTAL")}</span>
           <span>{m(s.order.grand_total)}</span>
         </div>
         <hr className="my-3 border-dashed border-black" />
         {s.payments.map((p, idx) => (
           <div key={idx}>
-            <Line label={METHOD[p.method] ?? p.method} value={m(p.amount)} />
+            <Line label={t(METHOD[p.method] ?? p.method)} value={m(p.amount)} />
             {p.method === "cash" && p.received_amount != null && (
               <>
-                <Line label="  Received" value={m(p.received_amount)} />
-                <Line label="  Change" value={m(p.change_amount ?? 0)} />
+                <Line label={"  " + t("Received")} value={m(p.received_amount)} />
+                <Line label={"  " + t("Change")} value={m(p.change_amount ?? 0)} />
               </>
             )}
           </div>
         ))}
-        <div className="text-center mt-4">Served by {s.cashier}</div>
-        <div className="text-center">Thank you!</div>
+        <div className="text-center mt-4">{t("Served by {name}", { name: s.cashier })}</div>
+        <div className="text-center">{t("Thank you!")}</div>
       </article>
     </main>
   );

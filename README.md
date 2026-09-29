@@ -15,6 +15,10 @@ Next.js 16 (App Router) on Cloudflare Workers (OpenNext adapter) with a Cloudfla
 | `/menu` | Categories and dishes: add, edit, price, sold-out toggle, hide/delete |
 | `/receipt/[orderId]` | Printable 80 mm receipt from the stored snapshot |
 
+## Languages (English / ไทย)
+
+Toggle with the **ไทย/EN** button (left rail, login page, kitchen header); the choice is a cookie. UI strings live in `src/lib/i18n/th/*.ts` (English text is the key; missing Thai falls back to English). Dish, category and option names have optional Thai columns (`name_th`, `description_th`) edited on the Menu page. Existing databases need `db/migrations/0002_thai_names.sql` once (already applied to the deployed D1).
+
 ## How it works
 
 - **Database**: D1 through the `DB` binding (`src/lib/db.ts`). `db/schema.sql` is idempotent. Writes that must succeed together use `db.batch()` — a D1 batch is one transaction.

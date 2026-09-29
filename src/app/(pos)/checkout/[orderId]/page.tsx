@@ -4,11 +4,13 @@ import { getContext } from "@/lib/session";
 import { ORDER_COLS, getOrderItems, recalcOrder } from "@/lib/orders";
 import { round2 } from "@/lib/money";
 import type { Order } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
 import { CheckoutScreen } from "./CheckoutScreen";
 
 export default async function CheckoutPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
   const { branch, staff } = await getContext();
+  const { lang } = await getT();
   if (!isUuid(orderId)) notFound();
 
   const status = await db.one<{ status: string }>("select status from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);
@@ -24,7 +26,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ order
         where o.id = ?1 and o.branch_id = ?2`,
       [orderId, branch.id]
     ),
-    getOrderItems(orderId, { excludeCancelled: true }),
+    getOrderItems(orderId, { lang, excludeCancelled: true }),
     db.q<{ id: string; method: string; amount: number; status: string; paid_at: string }>(
       "select id, method, amount, status, paid_at from payments where order_id = ?1 order by paid_at",
       [orderId]

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getT } from "@/lib/i18n/server";
 import { ACTIVE_SQL, db, isUuid, newId, stmt, type Stmt } from "@/lib/db";
 import { actionError, canManage, getContext } from "@/lib/session";
 import type { ActionResult, TableStatus } from "@/lib/types";
@@ -21,8 +22,9 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, M
 
 export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: string[] }): Promise<ActionResult<{ hidden: number }>> {
   try {
+    const { t } = await getT();
     const { staff, branch } = await getContext();
-    if (!canManage(staff.role)) return { ok: false, error: "Only managers can change the floor plan" };
+    if (!canManage(staff.role)) return { ok: false, error: t("Only managers can change the floor plan") };
 
     const rows = (input.tables ?? []).map((t) => ({
       id: isUuid(t.id) ? t.id : null,
@@ -60,7 +62,7 @@ export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: str
     let hidden = 0;
     for (const id of deleted) {
       const active = await db.one(`select 1 as x from orders where table_id = ?1 and status in ${ACTIVE_SQL} limit 1`, [id]);
-      if (active) return { ok: false, error: "A table you removed still has an open order. Close it first." };
+      if (active) return { ok: false, error: t("A table you removed still has an open order. Close it first.") };
       const history = await db.one("select 1 as x from orders where table_id = ?1 limit 1", [id]);
       if (history) {
         // Keep order history intact: hide instead of deleting.
@@ -82,9 +84,10 @@ export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: str
 
 export async function setTableStatus(tableId: string, status: TableStatus): Promise<ActionResult> {
   try {
+    const { t } = await getT();
     const { branch } = await getContext();
-    if (!isUuid(tableId)) return { ok: false, error: "Table not found" };
-    if (!["available", "occupied", "reserved", "cleaning"].includes(status)) return { ok: false, error: "Unknown status" };
+    if (!isUuid(tableId)) return { ok: false, error: t("Table not found") };
+    if (!["available", "occupied", "reserved", "cleaning"].includes(status)) return { ok: false, error: t("Unknown status") };
     await db.run("update dining_tables set status = ?3 where id = ?1 and branch_id = ?2", [tableId, branch.id, status]);
     revalidatePath("/tables");
     return { ok: true, data: undefined };

@@ -48,6 +48,7 @@ create table if not exists categories (
   id text primary key default (lower(hex(randomblob(16)))),
   company_id text not null references companies(id),
   name text not null,
+  name_th text,
   sort_order integer not null default 0,
   is_active integer not null default 1 check (is_active in (0,1)),
   created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -58,7 +59,9 @@ create table if not exists menu_items (
   company_id text not null references companies(id),
   category_id text not null references categories(id),
   name text not null,
+  name_th text,
   description text,
+  description_th text,
   base_price real not null check (base_price >= 0),
   image_url text,
   is_available integer not null default 1 check (is_available in (0,1)),
@@ -79,6 +82,7 @@ create table if not exists option_groups (
   id text primary key default (lower(hex(randomblob(16)))),
   menu_item_id text not null references menu_items(id),
   name text not null,
+  name_th text,
   selection_type text not null check (selection_type in ('single','multiple')),
   is_required integer not null default 0 check (is_required in (0,1)),
   min_select integer not null default 0,
@@ -90,6 +94,7 @@ create table if not exists option_choices (
   id text primary key default (lower(hex(randomblob(16)))),
   option_group_id text not null references option_groups(id),
   name text not null,
+  name_th text,
   price_delta real not null default 0,
   is_available integer not null default 1 check (is_available in (0,1)),
   sort_order integer not null default 0
