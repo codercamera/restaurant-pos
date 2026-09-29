@@ -1,0 +1,97 @@
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { getContext } from "@/lib/session";
+import { formatMoney, ORDER_TYPE_LABEL } from "@/lib/money";
+
+type Row = {
+  id: string;
+  order_number: string;
+  order_type: string;
+  status: string;
+  customer_name: string | null;
+  grand_total: number;
+  created_at: string;
+  closed_at: string | null;
+  table_name: string | null;
+};
+
+const STATUS: Record<string, { label: string; cls: string }> = {
+  open: { label: "Open", cls: "bg-info-soft text-info" },
+  sent_to_kitchen: { label: "In kitchen", cls: "bg-warn-soft text-warn" },
+  ready: { label: "Food ready", cls: "bg-good-soft text-good-dark" },
+  served: { label: "Served", cls: "bg-accent-soft text-accent-dark" },
+  completed: { label: "Paid", cls: "bg-ground-2 text-muted-2" },
+  cancelled: { label: "Cancelled", cls: "bg-ground-2 text-muted-2" },
+};
+
+export default async function OrdersPage() {
+  const { branch } = await getContext();
+  const cols = `o.id, o.order_number, o.order_type, o.status, o.customer_name, o.grand_total, o.created_at, o.closed_at, t.name as table_name`;
+  const [active, done] = await Promise.all([
+    db.q<Row>(
+      `select ${cols} from orders o left join dining_tables t on t.id = o.table_id
+        where o.branch_id = $1 and o.status in ('open','sent_to_kitchen','ready','served') order by o.created_at`,
+      [branch.id]
+    ),
+    db.q<Row>(
+      `select ${cols} from orders o left join dining_tables t on t.id = o.table_id
+        where o.branch_id = $1 and o.status in ('completed','cancelled') and o.created_at > now() - interval '24 hours'
+        order by o.closed_at desc nulls last limit 50`,
+      [branch.id]
+    ),
+  ]);
+  const takings = done.filter((o) => o.status === "completed").reduce((s, o) => s + Number(o.grand_total), 0);
+  const money = (n: number) => formatMoney(n, branch.currency);
+  const time = (iso: string) => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: branch.timezone });
+
+  const List = ({ rows, closed }: { rows: Row[]; closed?: boolean }) => (
+    <div className="rounded-2xl border border-line bg-panel overflow-hidden">
+      {rows.length === 0 && <div className="p-8 text-center text-muted">{closed ? "No closed orders in the last 24 hours." : "No open orders. Start one from New order or Tables."}</div>}
+      {rows.map((o) => {
+        const st = STATUS[o.status] ?? STATUS.open;
+        return (
+          <Link
+            key={o.id}
+            href={closed ? (o.status === "completed" ? `/receipt/${o.id}` : `/order?order=${o.id}`) : `/order?order=${o.id}`}
+            className="flex items-center gap-4 px-5 min-h-16 border-b border-[#efeae0] last:border-b-0 hover:bg-panel-2"
+          >
+            <span className="font-mono text-lg font-semibold w-16">#{o.order_number}</span>
+            <span className="grow font-semibold">
+              {ORDER_TYPE_LABEL[o.order_type]}
+              {o.table_name ? ` · Table ${o.table_name}` : ""}
+              {o.customer_name ? ` · ${o.customer_name}` : ""}
+            </span>
+            <span className="text-sm text-muted w-24">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full w-24 text-center ${st.cls}`}>{st.label}</span>
+            <span className="font-mono font-semibold w-28 text-right">{money(Number(o.grand_total))}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <main className="px-6 py-5 flex flex-col gap-6 max-w-[1100px]">
+      <header className="flex flex-wrap items-end gap-4">
+        <div>
+          <h1 className="font-display text-[28px] font-bold tracking-tight">Orders</h1>
+          <div className="text-sm text-muted">{branch.name}</div>
+        </div>
+        <div className="grow" />
+        <div className="rounded-xl bg-panel border border-line px-4 py-2.5">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted">Paid · last 24h</div>
+          <div className="font-mono text-xl font-semibold">{money(takings)}</div>
+        </div>
+        <Link href="/order" className="h-12 px-5 rounded-xl bg-accent text-white font-bold flex items-center hover:bg-accent-dark">New order</Link>
+      </header>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">Open · {active.length}</h2>
+        <List rows={active} />
+      </section>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-[0.06em] text-muted">Closed · last 24 hours</h2>
+        <List rows={done} closed />
+      </section>
+    </main>
+  );
+}
