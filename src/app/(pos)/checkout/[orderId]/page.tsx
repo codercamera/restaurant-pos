@@ -11,9 +11,9 @@ export default async function CheckoutPage({ params }: { params: Promise<{ order
   const { branch, staff } = await getContext();
   if (!isUuid(orderId)) notFound();
 
-  const status = await db.one<{ status: string }>("select status from orders where id = $1 and branch_id = $2", [orderId, branch.id]);
+  const status = await db.one<{ status: string }>("select status from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);
   if (!status) notFound();
-  if (status.status !== "completed" && status.status !== "cancelled") await recalcOrder(db, orderId, branch);
+  if (status.status !== "completed" && status.status !== "cancelled") await recalcOrder(orderId, branch);
 
   const [raw, items, payments] = await Promise.all([
     db.one<Order & { table_name: string | null; server_name: string | null }>(
@@ -21,12 +21,12 @@ export default async function CheckoutPage({ params }: { params: Promise<{ order
          from orders o
          left join dining_tables t on t.id = o.table_id
          left join staff s on s.id = o.opened_by_staff_id
-        where o.id = $1 and o.branch_id = $2`,
+        where o.id = ?1 and o.branch_id = ?2`,
       [orderId, branch.id]
     ),
-    getOrderItems(db, orderId, { excludeCancelled: true }),
+    getOrderItems(orderId, { excludeCancelled: true }),
     db.q<{ id: string; method: string; amount: number; status: string; paid_at: string }>(
-      "select id, method, amount, status, paid_at from payments where order_id = $1 order by paid_at",
+      "select id, method, amount, status, paid_at from payments where order_id = ?1 order by paid_at",
       [orderId]
     ),
   ]);

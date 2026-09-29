@@ -30,13 +30,13 @@ export default async function OrdersPage() {
   const [active, done] = await Promise.all([
     db.q<Row>(
       `select ${cols} from orders o left join dining_tables t on t.id = o.table_id
-        where o.branch_id = $1 and o.status in ('open','sent_to_kitchen','ready','served') order by o.created_at`,
+        where o.branch_id = ?1 and o.status in ('open','sent_to_kitchen','ready','served') order by o.created_at`,
       [branch.id]
     ),
     db.q<Row>(
       `select ${cols} from orders o left join dining_tables t on t.id = o.table_id
-        where o.branch_id = $1 and o.status in ('completed','cancelled') and o.created_at > now() - interval '24 hours'
-        order by o.closed_at desc nulls last limit 50`,
+        where o.branch_id = ?1 and o.status in ('completed','cancelled') and o.created_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 hours')
+        order by o.closed_at desc limit 50`,
       [branch.id]
     ),
   ]);

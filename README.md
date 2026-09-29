@@ -1,6 +1,6 @@
 # Restaurant POS — v1
 
-Next.js 16 (App Router) + PostgreSQL. Runs anywhere that has Node 22+ and a Postgres database.
+Next.js 16 (App Router) on Cloudflare Workers (OpenNext adapter) with a Cloudflare D1 (SQLite) database.
 
 ## Screens
 
@@ -17,36 +17,29 @@ Next.js 16 (App Router) + PostgreSQL. Runs anywhere that has Node 22+ and a Post
 
 ## How it works
 
-- **Database**: plain Postgres via `pg`. `db/schema.sql` is idempotent and is applied by `scripts/migrate.mjs` on every start (guarded by an advisory lock).
-- **Auth**: email + password (bcrypt), sessions in the `sessions` table (SHA-256 of a random token), httpOnly cookie `pos_session`, 30 days.
+- **Database**: D1 through the `DB` binding (`src/lib/db.ts`). `db/schema.sql` is idempotent. Writes that must succeed together use `db.batch()` — a D1 batch is one transaction.
+- **Auth**: email + password (PBKDF2 via Web Crypto), sessions in the `sessions` table (SHA-256 of a random token), httpOnly cookie `pos_session`, 30 days. There is no middleware; every server page/action calls `getContext()`, which redirects to `/login`.
 - **Access control**: every query is scoped to the signed-in staff member's `company_id` / `branch_id`. Menu and floor-plan edits need owner/admin/manager.
 - **Prices** are resolved on the server (branch overrides applied); the client never sets prices.
 - **Totals**: subtotal − discount → + service charge (branch %) → + tax (branch %) → + tip.
 - **Branch settings** on `branches`: `currency` (THB), `tax_rate` (7), `service_charge_rate` (0), `timezone` (Asia/Bangkok).
 - Tables and dishes with order history are hidden rather than deleted.
+- `updated_at` columns are set by the app (D1's REST endpoint can't apply triggers).
 
-## Environment
+## Deploy (Cloudflare Workers Builds)
 
-| Variable | Notes |
-| --- | --- |
-| `DATABASE_URL` | Postgres connection string, e.g. `postgres://user:pass@host:5432/pos` |
-| `DATABASE_SSL` | Set to `true` for databases that require TLS |
+1. Workers & Pages → Create → Import a repository → pick this repo. The Worker name must be `restaurant-pos` (matches `wrangler.jsonc`).
+2. Build command: `npx opennextjs-cloudflare build` · Deploy command: `npx opennextjs-cloudflare deploy`.
+3. The D1 database (`restaurant-pos`) is already bound in `wrangler.jsonc`. To (re)create the tables: `npm run db:apply`.
 
-## Deploying
-
-```sh
-npm ci && npm run build
-DATABASE_URL=... npm start   # applies db/schema.sql, then starts Next.js on $PORT
-```
-
-The start script runs the migration first, so a fresh database sets itself up on first boot.
+Or from your machine: `npm install && npm run deploy`.
 
 ## Local development
 
 ```sh
 npm install
-DATABASE_URL=postgres://localhost/pos npm run migrate
-DATABASE_URL=postgres://localhost/pos npm run dev
+npm run db:apply:local
+npm run dev
 ```
 
 ## Not in v1 yet

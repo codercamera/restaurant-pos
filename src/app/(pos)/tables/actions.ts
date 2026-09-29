@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db, isUuid, tx } from "@/lib/db";
-import { ACTIVE_STATUSES } from "@/lib/orders";
+import { ACTIVE_SQL, db, isUuid, newId, stmt, type Stmt } from "@/lib/db";
 import { actionError, canManage, getContext } from "@/lib/session";
 import type { ActionResult, TableStatus } from "@/lib/types";
 
@@ -38,37 +37,40 @@ export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: str
     }));
     const deleted = (input.deletedIds ?? []).filter(isUuid);
 
-    const hidden = await tx(async (t) => {
-      for (const r of rows) {
-        if (r.id) {
-          await t.q(
-            `update dining_tables set name = $3, zone = $4, seats = $5, shape = $6, pos_x = $7, pos_y = $8, width = $9, height = $10
-              where id = $1 and branch_id = $2`,
-            [r.id, branch.id, r.name, r.zone, r.seats, r.shape, r.pos_x, r.pos_y, r.width, r.height]
-          );
-        } else {
-          await t.q(
-            `insert into dining_tables (branch_id, name, zone, seats, shape, pos_x, pos_y, width, height)
-             values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [branch.id, r.name, r.zone, r.seats, r.shape, r.pos_x, r.pos_y, r.width, r.height]
-          );
-        }
+    const stmts: Stmt[] = [];
+    for (const r of rows) {
+      if (r.id) {
+        stmts.push(
+          stmt(
+            `update dining_tables set name = ?3, zone = ?4, seats = ?5, shape = ?6, pos_x = ?7, pos_y = ?8, width = ?9, height = ?10
+              where id = ?1 and branch_id = ?2`,
+            r.id, branch.id, r.name, r.zone, r.seats, r.shape, r.pos_x, r.pos_y, r.width, r.height
+          )
+        );
+      } else {
+        stmts.push(
+          stmt(
+            `insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
+            newId(), branch.id, r.name, r.zone, r.seats, r.shape, r.pos_x, r.pos_y, r.width, r.height
+          )
+        );
       }
-      let hiddenCount = 0;
-      for (const id of deleted) {
-        const active = await t.one("select 1 from orders where table_id = $1 and status = any($2) limit 1", [id, ACTIVE_STATUSES]);
-        if (active) throw new Error("A table you removed still has an open order. Close it first.");
-        const history = await t.one("select 1 from orders where table_id = $1 limit 1", [id]);
-        if (history) {
-          // Keep order history intact: hide instead of deleting.
-          await t.q("update dining_tables set is_active = false where id = $1 and branch_id = $2", [id, branch.id]);
-          hiddenCount++;
-        } else {
-          await t.q("delete from dining_tables where id = $1 and branch_id = $2", [id, branch.id]);
-        }
+    }
+    let hidden = 0;
+    for (const id of deleted) {
+      const active = await db.one(`select 1 as x from orders where table_id = ?1 and status in ${ACTIVE_SQL} limit 1`, [id]);
+      if (active) return { ok: false, error: "A table you removed still has an open order. Close it first." };
+      const history = await db.one("select 1 as x from orders where table_id = ?1 limit 1", [id]);
+      if (history) {
+        // Keep order history intact: hide instead of deleting.
+        stmts.push(stmt("update dining_tables set is_active = 0 where id = ?1 and branch_id = ?2", id, branch.id));
+        hidden++;
+      } else {
+        stmts.push(stmt("delete from dining_tables where id = ?1 and branch_id = ?2", id, branch.id));
       }
-      return hiddenCount;
-    });
+    }
+    await db.batch(stmts); // atomic
 
     revalidatePath("/tables");
     revalidatePath("/order");
@@ -83,7 +85,7 @@ export async function setTableStatus(tableId: string, status: TableStatus): Prom
     const { branch } = await getContext();
     if (!isUuid(tableId)) return { ok: false, error: "Table not found" };
     if (!["available", "occupied", "reserved", "cleaning"].includes(status)) return { ok: false, error: "Unknown status" };
-    await db.q("update dining_tables set status = $3 where id = $1 and branch_id = $2", [tableId, branch.id, status]);
+    await db.run("update dining_tables set status = ?3 where id = ?1 and branch_id = ?2", [tableId, branch.id, status]);
     revalidatePath("/tables");
     return { ok: true, data: undefined };
   } catch (e) {

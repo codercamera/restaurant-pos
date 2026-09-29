@@ -1,7 +1,11 @@
 node_modules
 .next
+.open-next
+.wrangler
 out
 .env*.local
+.dev.vars
 .vercel
 next-env.d.ts
+cloudflare-env.d.ts
 *.tsbuildinfo

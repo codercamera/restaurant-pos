@@ -1,20 +1,19 @@
 {
-  "name": "pos-app",
-  "version": "0.2.0",
+  "name": "restaurant-pos",
+  "version": "0.3.0",
   "private": true,
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "migrate": "node scripts/migrate.mjs",
-    "start": "node scripts/migrate.mjs && next start -H 0.0.0.0"
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "db:apply": "wrangler d1 execute DB --remote --file=db/schema.sql",
+    "db:apply:local": "wrangler d1 execute DB --local --file=db/schema.sql",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "@opennextjs/cloudflare": "latest",
     "next": "^16",
-    "pg": "^8.13.1",
     "react": "^19",
     "react-dom": "^19",
     "server-only": "^0.0.1"
@@ -22,10 +21,10 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22",
-    "@types/pg": "^8.11.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "latest"
   }
 }

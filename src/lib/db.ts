@@ -1,63 +1,90 @@
 import "server-only";
-import { Pool, types, type PoolClient } from "pg";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// Return numbers and ISO strings instead of strings/Dates.
-types.setTypeParser(1700, (v: string) => parseFloat(v)); // numeric
-types.setTypeParser(20, (v: string) => parseInt(v, 10)); // int8 / count(*)
-types.setTypeParser(1184, (v: string) => new Date(v).toISOString()); // timestamptz
-
-const g = globalThis as unknown as { __posPool?: Pool };
-
-function pool(): Pool {
-  if (!g.__posPool) {
-    g.__posPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 10,
-      ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-    });
-  }
-  return g.__posPool;
+// Minimal shape of the D1 binding we use (avoids depending on generated types).
+interface D1Result<T> {
+  results: T[];
+  success: boolean;
+}
+interface D1Stmt {
+  bind(...values: unknown[]): D1Stmt;
+  all<T = unknown>(): Promise<D1Result<T>>;
+  run(): Promise<D1Result<unknown>>;
+}
+interface D1Like {
+  prepare(sql: string): D1Stmt;
+  batch(statements: D1Stmt[]): Promise<D1Result<unknown>[]>;
 }
 
-type Exec = Pool | PoolClient;
-
-export type Db = {
-  q<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
-  one<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T | null>;
-};
-
-function runner(exec: () => Exec): Db {
-  return {
-    async q<T>(text: string, params?: unknown[]) {
-      const r = await exec().query(text, params as unknown[] | undefined);
-      return r.rows as T[];
-    },
-    async one<T>(text: string, params?: unknown[]) {
-      const r = await exec().query(text, params as unknown[] | undefined);
-      return (r.rows[0] as T | undefined) ?? null;
-    },
-  };
+function d1(): D1Like {
+  return (getCloudflareContext().env as unknown as { DB: D1Like }).DB;
 }
 
-export const db: Db = runner(pool);
+/** SQL expression for "now" as ISO-8601 UTC text (the format stored in every timestamp column). */
+export const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 
-/** Run fn inside a transaction; rolls back on throw. */
-export async function tx<T>(fn: (t: Db) => Promise<T>): Promise<T> {
-  const client = await pool().connect();
-  try {
-    await client.query("begin");
-    const out = await fn(runner(() => client));
-    await client.query("commit");
-    return out;
-  } catch (e) {
-    await client.query("rollback").catch(() => {});
-    throw e;
-  } finally {
-    client.release();
-  }
-}
+export const ACTIVE_SQL = "('open','sent_to_kitchen','ready','served')";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const newId = () => crypto.randomUUID();
+
+const UUID = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{32})$/i;
 export function isUuid(v: unknown): v is string {
   return typeof v === "string" && UUID.test(v);
 }
+
+/** "?4,?5,?6" — numbered placeholders for an IN (...) list starting at index `start`. */
+export function ph(start: number, count: number) {
+  return Array.from({ length: count }, (_, i) => `?${start + i}`).join(",");
+}
+
+const JSON_KEYS = new Set(["options", "order_item_options", "option_choices", "items", "snapshot"]);
+
+function fix<T>(row: Record<string, unknown>): T {
+  for (const k of Object.keys(row)) {
+    const v = row[k];
+    if (k.startsWith("is_") && (v === 0 || v === 1)) row[k] = v === 1;
+    else if (JSON_KEYS.has(k) && typeof v === "string") {
+      try {
+        row[k] = JSON.parse(v);
+      } catch {
+        /* leave as text */
+      }
+    }
+  }
+  return row as T;
+}
+
+const bindable = (v: unknown) => (v === undefined ? null : typeof v === "boolean" ? (v ? 1 : 0) : v);
+
+export type Stmt = { sql: string; params: unknown[] };
+/** Describe a statement for db.batch(). Placeholders are numbered: ?1, ?2, … */
+export const stmt = (sql: string, ...params: unknown[]): Stmt => ({ sql, params });
+
+async function q<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
+  const r = await d1()
+    .prepare(sql)
+    .bind(...params.map(bindable))
+    .all<Record<string, unknown>>();
+  return (r.results ?? []).map((row) => fix<T>(row));
+}
+
+async function one<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T | null> {
+  const rows = await q<T>(sql, params);
+  return rows[0] ?? null;
+}
+
+async function run(sql: string, params: unknown[] = []): Promise<void> {
+  await d1()
+    .prepare(sql)
+    .bind(...params.map(bindable))
+    .run();
+}
+
+/** Run statements atomically: D1 batches are a single transaction (all commit or none). */
+async function batch(statements: Stmt[]): Promise<void> {
+  if (!statements.length) return;
+  const d = d1();
+  await d.batch(statements.map((s) => d.prepare(s.sql).bind(...s.params.map(bindable))));
+}
+
+export const db = { q, one, run, batch };

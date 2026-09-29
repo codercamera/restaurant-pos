@@ -11,7 +11,7 @@ export async function getContext() {
   if (!staff.branch_id) redirect("/login?nobranch=1");
 
   const branch = await db.one<Branch>(
-    "select id, name, currency, tax_rate, service_charge_rate, timezone from branches where id = $1 and company_id = $2",
+    "select id, name, currency, tax_rate, service_charge_rate, timezone from branches where id = ?1 and company_id = ?2",
     [staff.branch_id, staff.company_id]
   );
   if (!branch) redirect("/login?nobranch=1");
@@ -29,5 +29,6 @@ export function canManage(role: string) {
 export function actionError(e: unknown): { ok: false; error: string } {
   if (e && typeof e === "object" && "digest" in e) throw e;
   console.error(e);
-  return { ok: false, error: e instanceof Error ? e.message : "Something went wrong" };
+  const msg = e instanceof Error ? e.message : "Something went wrong";
+  return { ok: false, error: /UNIQUE constraint/i.test(msg) ? "That was just taken by someone else — please try again." : msg };
 }

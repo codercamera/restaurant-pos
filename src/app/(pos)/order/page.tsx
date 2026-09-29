@@ -1,7 +1,7 @@
-import { db, isUuid } from "@/lib/db";
+import { ACTIVE_SQL, db, isUuid } from "@/lib/db";
 import { getContext } from "@/lib/session";
 import { loadSellableMenu } from "@/lib/menu";
-import { ACTIVE_STATUSES, getOrder, getOrderItems } from "@/lib/orders";
+import { getOrder, getOrderItems } from "@/lib/orders";
 import type { DiningTable, Order, OrderItem } from "@/lib/types";
 import { OrderScreen } from "./OrderScreen";
 
@@ -14,7 +14,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   const [{ categories, items }, tables] = await Promise.all([
     loadSellableMenu(ctx),
     db.q<Pick<DiningTable, "id" | "name" | "zone" | "seats">>(
-      "select id, name, zone, seats from dining_tables where branch_id = $1 and is_active order by zone nulls first, name",
+      "select id, name, zone, seats from dining_tables where branch_id = ?1 and is_active = 1 order by zone, name",
       [branch.id]
     ),
   ]);
@@ -23,8 +23,8 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   // Opening a table that already has an active order continues that order.
   if (!orderId && tableParam) {
     const row = await db.one<{ id: string }>(
-      "select id from orders where table_id = $1 and branch_id = $2 and status = any($3) order by created_at desc limit 1",
-      [tableParam, branch.id, ACTIVE_STATUSES]
+      `select id from orders where table_id = ?1 and branch_id = ?2 and status in ${ACTIVE_SQL} order by created_at desc limit 1`,
+      [tableParam, branch.id]
     );
     orderId = row?.id ?? null;
   }
@@ -32,8 +32,8 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   let order: Order | null = null;
   let orderItems: OrderItem[] = [];
   if (orderId) {
-    order = await getOrder(db, orderId, branch.id);
-    if (order) orderItems = await getOrderItems(db, order.id);
+    order = await getOrder(orderId, branch.id);
+    if (order) orderItems = await getOrderItems(order.id);
   }
 
   return (

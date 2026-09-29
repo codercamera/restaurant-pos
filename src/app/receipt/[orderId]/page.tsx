@@ -33,7 +33,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
   const data = await db.one<{ receipt_number: string; snapshot: unknown; printed_at: string }>(
     `select r.receipt_number, r.snapshot, r.printed_at
        from receipts r join orders o on o.id = r.order_id
-      where r.order_id = $1 and o.branch_id = $2
+      where r.order_id = ?1 and o.branch_id = ?2
       order by r.printed_at desc limit 1`,
     [orderId, branch.id]
   );

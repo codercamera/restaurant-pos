@@ -22,13 +22,13 @@ export default async function KitchenPage() {
   const { branch } = await getContext();
   const rows = await db.q<Row>(
     `select oi.id, oi.order_id, oi.item_name, oi.quantity, oi.status, oi.notes, oi.created_at,
-            coalesce((select json_agg(x.choice_name) from order_item_options x where x.order_item_id = oi.id), '[]') as options,
+            coalesce((select json_group_array(x.choice_name) from (select choice_name from order_item_options where order_item_id = oi.id order by rowid) x), '[]') as options,
             o.order_number, o.order_type, o.customer_name, o.notes as order_notes, t.name as table_name
        from order_items oi
        join orders o on o.id = oi.order_id
        left join dining_tables t on t.id = o.table_id
-      where o.branch_id = $1 and oi.status in ('pending','preparing','ready')
-      order by oi.created_at`,
+      where o.branch_id = ?1 and oi.status in ('pending','preparing','ready')
+      order by oi.created_at, oi.rowid`,
     [branch.id]
   );
 
