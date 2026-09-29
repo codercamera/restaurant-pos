@@ -29,7 +29,7 @@ create table if not exists staff (
   full_name text not null,
   email text,
   password_hash text,
-  role text not null check (role in ('admin','kitchen','cashier','customer')),
+  role text not null check (role in ('admin','kitchen','cashier','waiter')),
   pin_code_hash text,
   is_active integer not null default 1 check (is_active in (0,1)),
   created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -124,6 +124,8 @@ create table if not exists dining_tables (
   height real not null default 96,
   shape text not null default 'rect' check (shape in ('round','rect')),
   is_active integer not null default 1 check (is_active in (0,1)),
+  qr_token text default (lower(hex(randomblob(16)))),
+  self_order integer not null default 1 check (self_order in (0,1)),
   created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
@@ -133,6 +135,7 @@ create table if not exists orders (
   table_id text references dining_tables(id),
   order_number text not null,
   order_type text not null check (order_type in ('dine_in','takeaway','delivery')),
+  source text not null default 'staff' check (source in ('staff','table_qr')),
   status text not null default 'open' check (status in ('open','sent_to_kitchen','ready','served','completed','cancelled')),
   opened_by_staff_id text references staff(id),
   customer_name text,
@@ -269,3 +272,4 @@ create index if not exists payments_order_idx on payments (order_id);
 create index if not exists receipts_order_idx on receipts (order_id);
 create index if not exists menu_item_images_item_idx on menu_item_images (menu_item_id, sort_order);
 create unique index if not exists menu_item_images_primary_idx on menu_item_images (menu_item_id) where is_primary = 1;
+create unique index if not exists dining_tables_qr_token_idx on dining_tables (qr_token) where qr_token is not null;

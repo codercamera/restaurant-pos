@@ -4,7 +4,7 @@ const th: Record<string, string> = {
   "Admin": "ผู้ดูแลระบบ",
   "Kitchen": "ครัว",
   "Cashier": "แคชเชียร์",
-  "Customer": "ลูกค้า",
+  "Waiter": "พนักงานเสิร์ฟ",
   "Role": "บทบาท",
   "All": "ทั้งหมด",
   "{n} users · {a} admins": "{n} ผู้ใช้ · ผู้ดูแลระบบ {a} คน",

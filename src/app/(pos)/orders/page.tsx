@@ -15,6 +15,7 @@ type Row = {
   created_at: string;
   closed_at: string | null;
   table_name: string | null;
+  source: string;
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -29,7 +30,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 export default async function OrdersPage() {
   const { branch } = await getContext("orders.view");
   const { t, lang } = await getT();
-  const cols = `o.id, o.order_number, o.order_type, o.status, o.customer_name, o.grand_total, o.created_at, o.closed_at, t.name as table_name`;
+  const cols = `o.id, o.order_number, o.order_type, o.status, o.customer_name, o.grand_total, o.created_at, o.closed_at, t.name as table_name, o.source`;
   const [active, done] = await Promise.all([
     db.q<Row>(
       `select ${cols} from orders o left join dining_tables t on t.id = o.table_id
@@ -65,6 +66,7 @@ export default async function OrdersPage() {
                 {o.table_name ? ` · ${t("Table {n}", { n: o.table_name })}` : ""}
                 {o.customer_name ? ` · ${o.customer_name}` : ""}
               </span>
+              {o.source === "table_qr" && <span className="inline-block mt-0.5 text-[11px] font-bold px-2 py-0.5 rounded-full bg-info-soft text-info">{t("Guest QR order")}</span>}
               <span className="sm:hidden block text-xs font-normal text-muted">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
             </span>
             <span className="hidden sm:block text-sm text-muted w-24">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>

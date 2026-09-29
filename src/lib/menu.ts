@@ -1,16 +1,14 @@
 import "server-only";
 import { db } from "@/lib/db";
-import type { Ctx } from "@/lib/session";
 import { loc, type Lang } from "@/lib/i18n";
 import type { Category, OptionGroup, SellableItem } from "@/lib/types";
 
 /** Active categories and the items sold at this branch (branch overrides applied), with option groups. */
-export async function loadSellableMenu(ctx: Ctx, lang: Lang = "en") {
-  const { staff, branch } = ctx;
+export async function loadSellableMenu(scope: { companyId: string; branchId: string }, lang: Lang = "en") {
   const [categories, rows, groups] = await Promise.all([
     db.q<Category>(
       `select id, ${loc("name", lang)} as name, sort_order, is_active from categories where company_id = ?1 and is_active = 1 order by sort_order, name`,
-      [staff.company_id]
+      [scope.companyId]
     ),
     db.q<Omit<SellableItem, "groups">>(
       `select mi.id, mi.category_id, ${loc("mi.name", lang)} as name, ${loc("mi.description", lang)} as description, mi.base_price, mi.image_url, mi.sort_order,
@@ -23,9 +21,9 @@ export async function loadSellableMenu(ctx: Ctx, lang: Lang = "en") {
          left join menu_item_branch_overrides o on o.menu_item_id = mi.id and o.branch_id = ?2
         where mi.company_id = ?1
         order by mi.sort_order, mi.name`,
-      [staff.company_id, branch.id]
+      [scope.companyId, scope.branchId]
     ),
-    loadOptionGroups(staff.company_id, lang),
+    loadOptionGroups(scope.companyId, lang),
   ]);
 
   const byItem = new Map<string, OptionGroup[]>();

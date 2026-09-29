@@ -25,7 +25,7 @@ Each dish can have up to 4 photos; one is the **main** photo shown on the order 
 
 ## Users and roles
 
-Roles: **admin, kitchen, cashier, customer**. Admins open **Users** to add people, change roles, reset passwords and deactivate accounts (at least one active admin is always kept). What each role may do is one table, `ROLE_PERMISSIONS` in `src/lib/permissions.ts`: admin has every permission; the other three have none yet, so they can sign in but land on a "No access yet" page until permissions are assigned. Every page and server action checks the permission (`getContext("checkout")` and so on). Existing databases need `db/migrations/0003_roles.sql` once (already applied to the deployed D1).
+Roles: **admin, kitchen, cashier, waiter**. Admins open **Users** to add people, change roles, reset passwords and deactivate accounts (at least one active admin is always kept). What each role may do is one table, `ROLE_PERMISSIONS` in `src/lib/permissions.ts`: admin has every permission; the other three have none yet, so they can sign in but land on a "No access yet" page until permissions are assigned. Every page and server action checks the permission (`getContext("checkout")` and so on). Existing databases need `db/migrations/0003_roles.sql` then `0005_waiter_role_table_links.sql` once (already applied to the deployed D1).
 
 ## How it works
 
@@ -57,3 +57,7 @@ npm run dev
 ## Not in v1 yet
 
 Staff invites / PIN login, option-group editor on the Menu page, discounts UI, reports, inventory deduction, multi-branch switching.
+
+## Table ordering links (no login)
+
+Every table has a permanent link `/t/<token>` (admin: Tables → QR codes). Guests scan the QR code, browse the menu and send an order straight to the kitchen; payment stays with staff. Orders are marked "Guest QR order". Admins can switch a table's link off or generate a new one (the old QR stops working). Limits: 20 lines per submit, quantity ≤ 20, and at most 40 not-yet-started lines per table.

@@ -51,8 +51,8 @@ export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: str
       } else {
         stmts.push(
           stmt(
-            `insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height)
-             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
+            `insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height, qr_token)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, lower(hex(randomblob(16))))`,
             newId(), branch.id, r.name, r.zone, r.seats, r.shape, r.pos_x, r.pos_y, r.width, r.height
           )
         );

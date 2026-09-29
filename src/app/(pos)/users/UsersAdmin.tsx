@@ -25,7 +25,7 @@ const ROLE_TONE: Record<Role, string> = {
   admin: "bg-accent-soft text-accent-text",
   kitchen: "bg-warn-soft text-warn",
   cashier: "bg-info-soft text-info",
-  customer: "bg-good-soft text-good-dark",
+  waiter: "bg-good-soft text-good-dark",
 };
 
 export function UsersAdmin({ users, branches, currentId, defaultBranchId }: { users: UserRow[]; branches: BranchRow[]; currentId: string; defaultBranchId: string }) {

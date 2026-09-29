@@ -248,6 +248,11 @@ export function FloorPlan({
             ))}
           </div>
           {!edit && canEdit && (
+            <Link href="/tables/qr" className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
+              <Icon name="qr" size={18} /> {tr("QR codes")}
+            </Link>
+          )}
+          {!edit && canEdit && (
             <button type="button" onClick={startEdit} className="h-12 px-4 rounded-xl border border-ink bg-panel text-[15px] font-bold flex items-center gap-2">
               <Icon name="edit" size={18} /> {tr("Edit layout")}
             </button>

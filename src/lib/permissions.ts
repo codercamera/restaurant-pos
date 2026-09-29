@@ -1,7 +1,7 @@
 // Roles and what each may do. Shared by server (enforcement) and client (menus).
 // To change what a role can do, edit ROLE_PERMISSIONS below — nothing else needs to change.
 
-export const ROLES = ["admin", "kitchen", "cashier", "customer"] as const;
+export const ROLES = ["admin", "kitchen", "cashier", "waiter"] as const;
 export type Role = (typeof ROLES)[number];
 
 export const PERMISSIONS = [
@@ -20,7 +20,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   admin: PERMISSIONS, // every function
   kitchen: [], // to be defined
   cashier: [], // to be defined
-  customer: [], // to be defined
+  waiter: [], // to be defined
 };
 
 export const isRole = (v: unknown): v is Role => typeof v === "string" && (ROLES as readonly string[]).includes(v);
@@ -36,7 +36,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   admin: "Admin",
   kitchen: "Kitchen",
   cashier: "Cashier",
-  customer: "Customer",
+  waiter: "Waiter",
 };
 
 /** Screens in the order we look for a landing page after sign-in. */

@@ -93,7 +93,7 @@ export function seedStatements(companyId: string, branchId: string): Stmt[] {
 
   const tableRows = TABLES.map(
     ([name, zone, seats, shape, x, y, w, h]) =>
-      `(${lit(newId())}, ${lit(branchId)}, ${lit(name)}, ${lit(zone)}, ${seats}, ${lit(shape)}, ${x}, ${y}, ${w}, ${h})`
+      `(${lit(newId())}, ${lit(branchId)}, ${lit(name)}, ${lit(zone)}, ${seats}, ${lit(shape)}, ${x}, ${y}, ${w}, ${h}, lower(hex(randomblob(16))))`
   );
 
   return [
@@ -101,6 +101,6 @@ export function seedStatements(companyId: string, branchId: string): Stmt[] {
     stmt(`insert into menu_items (id, company_id, category_id, name, description, name_th, description_th, base_price, sort_order) values ${itemRows.join(", ")}`),
     stmt(`insert into option_groups (id, menu_item_id, name, name_th, selection_type, is_required, min_select, max_select, sort_order) values ${groupRows.join(", ")}`),
     stmt(`insert into option_choices (id, option_group_id, name, name_th, price_delta, sort_order) values ${choiceRows.join(", ")}`),
-    stmt(`insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height) values ${tableRows.join(", ")}`),
+    stmt(`insert into dining_tables (id, branch_id, name, zone, seats, shape, pos_x, pos_y, width, height, qr_token) values ${tableRows.join(", ")}`),
   ];
 }
