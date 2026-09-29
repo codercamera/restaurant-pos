@@ -51,10 +51,10 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
   };
 
   return (
-    <main className="px-6 py-5 flex flex-col gap-5 lg:h-screen">
+    <main className="px-4 py-4 sm:px-6 sm:py-5 flex flex-col gap-4 sm:gap-5 lg:h-screen">
       <header className="flex flex-wrap items-end gap-4">
         <div>
-          <h1 className="font-display text-[28px] font-bold tracking-tight">{t("Menu")}</h1>
+          <h1 className="font-display text-2xl sm:text-[28px] font-bold tracking-tight">{t("Menu")}</h1>
           <div className="text-sm text-muted">{t("{n} dishes in {c} categories · changes show on the order screen right away", { n: items.length, c: categories.length })}</div>
         </div>
       </header>
@@ -66,7 +66,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
       )}
 
       <div className="grow min-h-0 flex flex-col md:flex-row gap-5">
-        <section aria-label={t("Categories")} className="md:w-[300px] shrink-0 rounded-2xl border border-line bg-panel flex flex-col overflow-hidden">
+        <section aria-label={t("Categories")} className="md:w-[300px] max-md:max-h-64 shrink-0 rounded-2xl border border-line bg-panel flex flex-col overflow-hidden">
           <div className="grow overflow-auto">
             {categories.map((c) => (
               <div key={c.id} className={`flex items-center gap-2 px-3 min-h-14 border-b border-hair ${c.id === cat ? "bg-ground" : ""}`}>
@@ -148,15 +148,15 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
               <div className="grow overflow-auto">
                 {list.length === 0 && <div className="p-10 text-center text-muted">{t("No dishes in this category yet.")}</div>}
                 {list.map((i) => (
-                  <div key={i.id} className="flex items-center gap-4 px-5 py-3.5 border-b border-hair">
-                    <div className="grow min-w-0">
+                  <div key={i.id} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-2 px-4 sm:px-5 py-3.5 border-b border-hair">
+                    <div className="grow min-w-[60%] sm:min-w-0 min-w-0">
                       <div className={`font-semibold ${i.is_available ? "" : "text-muted"}`}>{i.name}</div>
                       {i.name_th && <div className="text-xs text-muted">{i.name_th}</div>}
                       <div className="text-[13px] text-muted truncate">{i.description}</div>
                       {i.description_th && <div className="text-xs text-muted truncate">{i.description_th}</div>}
                       {i.options.length > 0 && <div className="text-xs font-semibold text-info mt-0.5">{t("Options:")} {i.options.join(", ")}</div>}
                     </div>
-                    <span className="font-mono font-semibold w-28 text-right">{formatMoney(i.base_price, currency)}</span>
+                    <span className="font-mono font-semibold sm:w-28 text-right">{formatMoney(i.base_price, currency)}</span>
                     <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
                       <input type="checkbox" checked={i.is_available} onChange={(e) => run(() => setItemAvailable(i.id, e.target.checked))} className="size-5 accent-[#2f6b4f]" />
                       {i.is_available ? t("On sale") : t("Sold out")}
@@ -208,7 +208,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
               e.preventDefault();
               submitItem();
             }}
-            className="w-full max-w-[480px] rounded-2xl bg-panel p-6 flex flex-col gap-4"
+            className="w-full max-w-[480px] max-h-[92vh] overflow-auto rounded-2xl bg-panel p-4 sm:p-6 flex flex-col gap-4"
           >
             <h2 id="dish-title" className="font-display text-2xl font-bold">{form.id ? t("Edit dish") : t("New dish")}</h2>
             <div className="flex flex-col gap-1.5">

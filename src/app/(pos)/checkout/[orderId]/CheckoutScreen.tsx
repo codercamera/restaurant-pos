@@ -103,12 +103,12 @@ export function CheckoutScreen({
 
   return (
     <div className="flex flex-col lg:flex-row lg:h-screen">
-      <section aria-label={t("Order summary")} className="w-full lg:w-[460px] shrink-0 bg-panel border-r border-line flex flex-col px-8 py-7 gap-5">
+      <section aria-label={t("Order summary")} className="w-full lg:w-[460px] shrink-0 bg-panel border-r border-line flex flex-col px-4 py-4 sm:px-8 sm:py-7 gap-4 sm:gap-5">
         <Link href={`/order?order=${order.id}`} className="self-start inline-flex items-center gap-2 h-11 pl-2.5 pr-3.5 rounded-[10px] border border-line text-sm font-semibold">
           <Icon name="back" size={18} /> {t("Back to order")}
         </Link>
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[30px] font-bold tracking-tight">
+          <h1 className="font-display text-2xl sm:text-[30px] font-bold tracking-tight">
             {t("Order")} <span className="font-mono text-[26px]">#{order.order_number}</span>
           </h1>
           <div className="text-[15px] text-muted">
@@ -119,7 +119,7 @@ export function CheckoutScreen({
           </div>
         </div>
 
-        <div className="grow min-h-0 overflow-auto flex flex-col">
+        <div className="grow min-h-0 overflow-auto flex flex-col max-h-44 sm:max-h-64 lg:max-h-none">
           {items.map((i) => (
             <div key={i.id} className="flex items-baseline gap-3.5 py-3 border-b border-hair">
               <span className="font-mono text-[15px] font-semibold text-muted w-7">{i.quantity}×</span>
@@ -143,12 +143,12 @@ export function CheckoutScreen({
           {paid > 0 && <Row label={t("Paid so far")} value={`−${money(paid)}`} />}
           <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-line-2">
             <span className="text-lg font-bold">{closed ? t("Total paid") : t("Amount due")}</span>
-            <span className="font-mono text-[32px] font-semibold">{money(closed ? grand : remaining)}</span>
+            <span className="font-mono text-[28px] sm:text-[32px] font-semibold">{money(closed ? grand : remaining)}</span>
           </div>
         </div>
       </section>
 
-      <main className="grow min-w-0 px-10 py-7 flex flex-col gap-5">
+      <main className="grow min-w-0 px-4 py-5 sm:px-10 sm:py-7 flex flex-col gap-4 sm:gap-5">
         {closed ? (
           <div className="grow flex flex-col items-center justify-center gap-5 text-center">
             <div className="size-24 rounded-[28px] bg-good-soft text-good-dark flex items-center justify-center">
@@ -164,7 +164,7 @@ export function CheckoutScreen({
             <div className="text-muted">
               {payments.map((p) => `${t(METHOD_LABEL[p.method] ?? p.method)} ${money(p.amount)}`).join(" · ")}
             </div>
-            <div className="flex gap-3 mt-2">
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
               <Link href={`/receipt/${order.id}`} target="_blank" className="h-14 px-6 rounded-xl border border-ink bg-panel flex items-center gap-2 font-bold">
                 <Icon name="print" size={18} /> {t("Print receipt")}
               </Link>
@@ -174,11 +174,11 @@ export function CheckoutScreen({
           </div>
         ) : (
           <>
-            <h2 className="font-display text-[30px] font-bold tracking-tight">{t("Take payment")}</h2>
+            <h2 className="font-display text-2xl sm:text-[30px] font-bold tracking-tight">{t("Take payment")}</h2>
 
             <div role="group" aria-label={t("Payment method")} className="grid grid-cols-3 gap-3">
               {METHODS.map((m) => (
-                <button key={m.id} type="button" aria-pressed={method === m.id} onClick={() => setMethod(m.id)} className={`h-[76px] text-lg ${tile(method === m.id)}`}>
+                <button key={m.id} type="button" aria-pressed={method === m.id} onClick={() => setMethod(m.id)} className={`h-[72px] sm:h-[76px] flex-col sm:flex-row gap-1 sm:gap-3 text-sm sm:text-lg ${tile(method === m.id)}`}>
                   <Icon name={m.icon} size={26} stroke={1.8} /> {t(m.label)}
                 </button>
               ))}
@@ -222,18 +222,18 @@ export function CheckoutScreen({
               </div>
             </div>
 
-            <div className="grow min-h-0 bg-panel border border-line rounded-[18px] p-7 flex flex-col">
+            <div className="grow min-h-0 bg-panel border border-line rounded-[18px] p-4 sm:p-7 flex flex-col">
               <div className="flex items-baseline justify-between pb-4 mb-4 border-b border-line">
                 <span className="text-base font-bold text-muted-2">{ways > 1 ? t("This share (1 of {n})", { n: ways }) : t("Charging now")}</span>
-                <span className="font-mono text-[34px] font-semibold">{money(amount)}</span>
+                <span className="font-mono text-[28px] sm:text-[34px] font-semibold">{money(amount)}</span>
               </div>
 
               {method === "cash" ? (
-                <div className="grow flex flex-wrap gap-7 min-h-0">
-                  <div className="grow flex flex-col gap-3.5 min-w-[260px]">
+                <div className="grow flex flex-wrap gap-5 sm:gap-7 min-h-0">
+                  <div className="grow flex flex-col gap-3.5 sm:min-w-[260px]">
                     <div>
                       <div className="text-sm font-semibold text-muted">{t("Cash received")}</div>
-                      <div className="font-mono text-5xl font-semibold">{money(received)}</div>
+                      <div className="font-mono text-4xl sm:text-5xl font-semibold">{money(received)}</div>
                     </div>
                     <div className="grid grid-cols-2 gap-2.5">
                       {quick.map((v, i) => (
@@ -248,14 +248,14 @@ export function CheckoutScreen({
                       <span className="font-mono text-3xl font-semibold">{money(received > 0 ? Math.abs(changeDue) : amount)}</span>
                     </div>
                   </div>
-                  <div className="w-[300px] grid grid-cols-3 gap-2.5 content-start">
+                  <div className="w-full sm:w-[300px] grid grid-cols-3 gap-2.5 content-start">
                     {["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "del"].map((k) => (
                       <button
                         key={k}
                         type="button"
                         onClick={() => press(k)}
                         aria-label={k === "del" ? t("Delete digit") : k}
-                        className="h-[68px] rounded-[14px] border border-line bg-panel font-mono text-2xl font-semibold active:bg-ground"
+                        className="h-14 sm:h-[68px] rounded-[14px] border border-line bg-panel font-mono text-2xl font-semibold active:bg-ground"
                       >
                         {k === "del" ? "⌫" : k}
                       </button>
@@ -279,7 +279,7 @@ export function CheckoutScreen({
             {notice && <p role="status" className="rounded-xl bg-good-soft px-4 py-3 font-semibold text-good-dark">{notice}</p>}
             {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-3 font-semibold text-accent-text">{error}</p>}
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {payments.length > 0 && (
                 <div className="text-sm text-muted">
                   {t("Paid")}: {payments.map((p) => `${t(METHOD_LABEL[p.method] ?? p.method)} ${money(p.amount)}`).join(" · ")}
@@ -290,7 +290,7 @@ export function CheckoutScreen({
                 type="button"
                 disabled={!canCharge || pending}
                 onClick={charge}
-                className="h-[60px] min-w-[320px] px-7 rounded-[14px] bg-accent text-white text-lg font-bold flex items-center justify-center gap-2.5 disabled:opacity-40 hover:bg-accent-dark"
+                className="h-[60px] w-full sm:w-auto sm:min-w-[320px] px-5 sm:px-7 rounded-[14px] bg-accent text-white text-lg font-bold flex items-center justify-center gap-2.5 disabled:opacity-40 hover:bg-accent-dark"
               >
                 <Icon name="check" size={20} stroke={2.4} />
                 {pending ? t("Recording…") : method === "cash" ? t("Take cash {amount}", { amount: money(amount) }) : t("Confirm {amount} paid", { amount: money(amount) })}

@@ -1,5 +1,9 @@
 // Thai translations (English source string -> Thai).
 const th: Record<string, string> = {
+  "Back to menu": "กลับไปเมนู",
+  "View order": "ดูออเดอร์",
+  "Settings": "ตั้งค่า",
+  "Stage": "สถานะ",
   "Cancel": "ยกเลิก",
   "Save": "บันทึก",
   "Delete": "ลบ",

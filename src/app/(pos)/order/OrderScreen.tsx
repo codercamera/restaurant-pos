@@ -69,6 +69,7 @@ export function OrderScreen({
   const [draft, setDraft] = useState<DraftLine[]>([]);
   const [dialogItem, setDialogItem] = useState<SellableItem | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false); // order panel as a full-screen sheet below lg
 
   const currency = branch.currency;
   const money = (n: number) => formatMoney(n, currency);
@@ -193,7 +194,7 @@ export function OrderScreen({
   };
 
   const chip = (active: boolean) =>
-    `inline-flex items-center gap-2 h-11 px-[18px] rounded-full text-[15px] font-semibold border ${
+    `inline-flex shrink-0 whitespace-nowrap items-center gap-2 h-11 px-[18px] rounded-full text-[15px] font-semibold border ${
       active ? "bg-strong text-on-strong border-strong" : "bg-panel text-ink border-line hover:border-line-2"
     }`;
 
@@ -202,10 +203,10 @@ export function OrderScreen({
 
   return (
     <div className="flex flex-col lg:flex-row lg:h-screen">
-      <main className="grow min-w-0 flex flex-col px-6 pt-5 pb-6 gap-[18px] lg:overflow-hidden">
-        <header className="flex flex-wrap items-center gap-4">
+      <main className="grow min-w-0 flex flex-col px-4 sm:px-6 pt-4 sm:pt-5 pb-5 sm:pb-6 max-lg:pb-24 gap-3.5 sm:gap-[18px] lg:overflow-hidden">
+        <header className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-[28px] font-bold tracking-tight">
+            <h1 className="font-display text-2xl sm:text-[28px] font-bold tracking-tight">
               {order ? (
                 <>
                   {t("Order")} <span className="font-mono text-2xl">#{order.order_number}</span>
@@ -220,7 +221,7 @@ export function OrderScreen({
           </div>
           <div className="grow" />
           <label htmlFor="menu-search" className="sr-only">{t("Search menu")}</label>
-          <div className="flex items-center gap-2 h-12 w-[300px] max-w-full px-3.5 bg-panel border border-line rounded-xl text-muted">
+          <div className="flex items-center gap-2 h-12 w-full sm:w-[300px] max-w-full px-3.5 bg-panel border border-line rounded-xl text-muted">
             <Icon name="search" size={18} stroke={2} />
             <input
               id="menu-search"
@@ -231,7 +232,7 @@ export function OrderScreen({
               className="grow min-w-0 bg-transparent outline-none text-[15px] font-medium text-ink"
             />
           </div>
-          <div role="group" aria-label={t("Order type")} className="flex p-1 bg-ground-2 rounded-xl gap-1">
+          <div role="group" aria-label={t("Order type")} className="flex w-full sm:w-auto p-1 bg-ground-2 rounded-xl gap-1">
             {TYPES.map((ty) => (
               <button
                 key={ty.id}
@@ -239,7 +240,7 @@ export function OrderScreen({
                 aria-pressed={orderType === ty.id}
                 disabled={closed}
                 onClick={() => setOrderType(ty.id)}
-                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${orderType === ty.id ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
+                className={`h-10 flex-1 sm:flex-none px-4 rounded-[9px] text-sm font-semibold ${orderType === ty.id ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
               >
                 {t(ty.label)}
               </button>
@@ -247,7 +248,7 @@ export function OrderScreen({
           </div>
         </header>
 
-        <div role="tablist" aria-label={t("Categories")} className="flex flex-wrap gap-2">
+        <div role="tablist" aria-label={t("Categories")} className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 pb-1 md:pb-0 [scrollbar-width:none]">
           <button type="button" role="tab" aria-selected={cat === "all"} onClick={() => setCat("all")} className={chip(cat === "all")}>
             {t("All")} <span className="font-mono text-xs opacity-70">{items.length}</span>
           </button>
@@ -266,7 +267,7 @@ export function OrderScreen({
           ) : visible.length === 0 ? (
             <div className="p-10 text-center text-muted">{t("No dishes match “{search}”.", { search })}</div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 content-start">
+            <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2.5 sm:gap-3 content-start">
               {visible.map((item) => {
                 const n = qtyInDraft(item.id);
                 const off = !item.is_available;
@@ -276,7 +277,7 @@ export function OrderScreen({
                     type="button"
                     onClick={() => onPick(item)}
                     disabled={off || closed}
-                    className={`text-left flex flex-col gap-2 p-4 min-h-[176px] rounded-[14px] bg-panel border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`text-left flex flex-col gap-2 p-3 sm:p-4 min-h-[140px] sm:min-h-[176px] rounded-[14px] bg-panel border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       n > 0 ? "border-accent" : "border-panel shadow-[inset_0_0_0_1px_var(--color-line)]"
                     }`}
                   >
@@ -306,10 +307,16 @@ export function OrderScreen({
         </div>
       </main>
 
-      <aside aria-label={t("Current order")} className="w-full lg:w-[400px] shrink-0 bg-panel border-l border-line flex flex-col lg:h-screen">
-        <div className="px-6 pt-5 pb-4 border-b border-line flex flex-col gap-3">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-display text-[22px] font-bold">
+      <aside
+        aria-label={t("Current order")}
+        className={`w-full lg:w-[400px] shrink-0 bg-panel border-l border-line flex flex-col lg:h-screen max-lg:fixed max-lg:inset-0 max-lg:z-[60] max-lg:h-dvh ${sheetOpen ? "" : "max-lg:hidden"}`}
+      >
+        <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-4 border-b border-line flex flex-col gap-3">
+          <div className="flex items-center lg:items-baseline justify-between gap-2">
+            <button type="button" onClick={() => setSheetOpen(false)} aria-label={t("Back to menu")} className="lg:hidden -ml-1 size-11 shrink-0 rounded-xl border border-line flex items-center justify-center">
+              <Icon name="back" size={20} stroke={2} />
+            </button>
+            <h2 className="grow lg:grow-0 font-display text-[22px] font-bold">
               {order ? (
                 <>
                   {t("Order")} <span className="font-mono text-lg">#{order.order_number}</span>
@@ -367,7 +374,7 @@ export function OrderScreen({
           )}
         </div>
 
-        <div className="grow min-h-0 overflow-auto px-6 py-2 flex flex-col">
+        <div className="grow min-h-0 overflow-auto px-4 sm:px-6 py-2 flex flex-col">
           {!hasAnything && <div className="m-auto text-center text-muted text-[15px] leading-relaxed py-10">{t("No items yet.")}<br />{t("Tap a dish to add it.")}</div>}
 
           {orderItems.length > 0 && (
@@ -439,7 +446,7 @@ export function OrderScreen({
           )}
         </div>
 
-        <div className="px-6 pt-4 pb-6 border-t border-line flex flex-col gap-2.5 bg-panel-2">
+        <div className="px-4 sm:px-6 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] border-t border-line flex flex-col gap-2.5 bg-panel-2">
           <div className="flex justify-between text-[15px] text-muted"><span>{t("Subtotal")}</span><span className="font-mono text-ink">{money(totals.subtotal)}</span></div>
           {totals.service > 0 && (
             <div className="flex justify-between text-[15px] text-muted"><span>{t("Service ({rate}%)", { rate: branch.service_charge_rate })}</span><span className="font-mono text-ink">{money(totals.service)}</span></div>
@@ -484,6 +491,20 @@ export function OrderScreen({
           )}
         </div>
       </aside>
+
+      {!closed && hasAnything && !sheetOpen && (
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="no-print lg:hidden fixed inset-x-3 z-40 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-4 h-14 px-4 rounded-2xl bg-accent text-white shadow-lg flex items-center gap-3 font-bold"
+        >
+          <span className="min-w-7 h-7 px-2 rounded-full bg-white/20 font-mono text-sm inline-flex items-center justify-center">
+            {orderItems.filter((i) => i.status !== "cancelled").reduce((s, i) => s + i.quantity, 0) + draft.reduce((s, d) => s + d.quantity, 0)}
+          </span>
+          <span className="grow text-left">{t("View order")}</span>
+          <span className="font-mono">{money(totals.grand)}</span>
+        </button>
+      )}
 
       {dialogItem && (
         <OptionsDialog

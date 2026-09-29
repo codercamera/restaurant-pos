@@ -105,6 +105,19 @@ textarea {
   outline-offset: 2px;
 }
 
+/* Phones: 16px form text stops iOS Safari zooming into fields; no sideways page wobble. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;

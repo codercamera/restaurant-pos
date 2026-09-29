@@ -12,7 +12,7 @@ export default async function PosLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen">
       <Rail initials={initials || "?"} canManage={canManage(staff.role)} />
-      <div className="grow min-w-0">{children}</div>
+      <div className="grow min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
     </div>
   );
 }

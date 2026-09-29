@@ -69,15 +69,15 @@ export function OptionsDialog({
   const unit = round2(item.price + extra);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="opt-title"
-        className="w-full max-w-[560px] max-h-[90vh] flex flex-col rounded-2xl bg-panel shadow-2xl"
+        className="w-full max-w-[560px] max-h-[92dvh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl bg-panel shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start gap-4 border-b border-line p-6">
+        <div className="flex items-start gap-4 border-b border-line p-4 sm:p-6">
           <div className="grow">
             <h2 id="opt-title" className="font-display text-2xl font-bold">{item.name}</h2>
             {item.description && <p className="mt-1 text-muted">{item.description}</p>}
@@ -87,7 +87,7 @@ export function OptionsDialog({
           </button>
         </div>
 
-        <div className="grow overflow-auto p-6 flex flex-col gap-6">
+        <div className="grow overflow-auto p-4 sm:p-6 flex flex-col gap-6">
           {item.groups.map((g) => {
             const req = g.is_required || g.min_select > 0;
             const hint =
@@ -141,7 +141,7 @@ export function OptionsDialog({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 border-t border-line p-5">
+        <div className="flex items-center gap-3 border-t border-line p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-1 rounded-[10px] bg-ground p-0.5">
             <button type="button" aria-label={t("Fewer")} onClick={() => setQty((q) => Math.max(1, q - 1))} className="size-11 rounded-lg flex items-center justify-center">
               <Icon name="minus" size={16} stroke={2.2} />

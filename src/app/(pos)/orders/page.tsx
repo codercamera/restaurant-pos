@@ -56,17 +56,23 @@ export default async function OrdersPage() {
           <Link
             key={o.id}
             href={closed ? (o.status === "completed" ? `/receipt/${o.id}` : `/order?order=${o.id}`) : `/order?order=${o.id}`}
-            className="flex items-center gap-4 px-5 min-h-16 border-b border-hair last:border-b-0 hover:bg-panel-2"
+            className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-2.5 min-h-16 border-b border-hair last:border-b-0 hover:bg-panel-2"
           >
-            <span className="font-mono text-lg font-semibold w-16">#{o.order_number}</span>
-            <span className="grow font-semibold">
-              {t(ORDER_TYPE_LABEL[o.order_type])}
-              {o.table_name ? ` · ${t("Table {n}", { n: o.table_name })}` : ""}
-              {o.customer_name ? ` · ${o.customer_name}` : ""}
+            <span className="font-mono text-base sm:text-lg font-semibold w-14 sm:w-16 shrink-0">#{o.order_number}</span>
+            <span className="grow min-w-0 font-semibold">
+              <span className="block truncate">
+                {t(ORDER_TYPE_LABEL[o.order_type])}
+                {o.table_name ? ` · ${t("Table {n}", { n: o.table_name })}` : ""}
+                {o.customer_name ? ` · ${o.customer_name}` : ""}
+              </span>
+              <span className="sm:hidden block text-xs font-normal text-muted">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
             </span>
-            <span className="text-sm text-muted w-24">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full w-24 text-center ${st.cls}`}>{t(st.label)}</span>
-            <span className="font-mono font-semibold w-28 text-right">{money(Number(o.grand_total))}</span>
+            <span className="hidden sm:block text-sm text-muted w-24">{time(closed && o.closed_at ? o.closed_at : o.created_at)}</span>
+            <span className={`hidden sm:block text-xs font-bold px-2.5 py-1 rounded-full w-24 text-center ${st.cls}`}>{t(st.label)}</span>
+            <span className="flex flex-col items-end gap-1 sm:block sm:w-28 text-right shrink-0">
+              <span className="font-mono font-semibold">{money(Number(o.grand_total))}</span>
+              <span className={`sm:hidden text-[11px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{t(st.label)}</span>
+            </span>
           </Link>
         );
       })}
@@ -74,10 +80,10 @@ export default async function OrdersPage() {
   );
 
   return (
-    <main className="px-6 py-5 flex flex-col gap-6 max-w-[1100px]">
+    <main className="px-4 py-4 sm:px-6 sm:py-5 flex flex-col gap-5 sm:gap-6 max-w-[1100px]">
       <header className="flex flex-wrap items-end gap-4">
         <div>
-          <h1 className="font-display text-[28px] font-bold tracking-tight">{t("Orders")}</h1>
+          <h1 className="font-display text-2xl sm:text-[28px] font-bold tracking-tight">{t("Orders")}</h1>
           <div className="text-sm text-muted">{branch.name}</div>
         </div>
         <div className="grow" />

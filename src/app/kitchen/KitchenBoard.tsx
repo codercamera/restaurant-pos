@@ -45,6 +45,7 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState("all");
+  const [mobileCol, setMobileCol] = useState<Stage>("new"); // phones show one stage at a time
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,42 +81,59 @@ export function KitchenBoard({ tickets, branchName }: { tickets: Ticket[]; branc
   const clock = new Date(now).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="min-h-screen lg:h-screen bg-[#151412] text-[#f4f1ea] flex flex-col px-6 pt-5 pb-6 gap-[18px]">
-      <header className="flex flex-wrap items-center gap-4">
+    <div className="min-h-screen lg:h-screen bg-[#151412] text-[#f4f1ea] flex flex-col px-4 sm:px-6 pt-4 sm:pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6 gap-3.5 sm:gap-[18px]">
+      <header className="flex flex-wrap items-center gap-3 sm:gap-4">
         <Link href="/order" aria-label={tr("Back to POS")} className="size-12 rounded-xl bg-[#2a2824] flex items-center justify-center">
           <Icon name="back" size={20} stroke={2} />
         </Link>
         <div className="flex flex-col gap-0.5">
-          <h1 className="font-display text-[28px] font-bold tracking-tight">{tr("Kitchen")}</h1>
+          <h1 className="font-display text-2xl sm:text-[28px] font-bold tracking-tight">{tr("Kitchen")}</h1>
           <div className="text-sm text-[#b5afa3]">
             {branchName} · {tr("{n} open tickets", { n: visible.length })} · {tr("{n} running late (over {m} min)", { n: lateCount, m: LATE_AFTER_MIN })}
           </div>
         </div>
         <div className="grow" />
-        <div role="group" aria-label={tr("Order type")} className="flex flex-wrap gap-2">
+        <div role="group" aria-label={tr("Order type")} className="order-last sm:order-none w-full sm:w-auto flex gap-2 overflow-x-auto sm:flex-wrap">
           {FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
               aria-pressed={filter === f.id}
               onClick={() => setFilter(f.id)}
-              className={`h-11 px-4 rounded-[10px] text-[15px] font-semibold border ${filter === f.id ? "bg-[#f4f1ea] text-[#1b1a17] border-[#f4f1ea]" : "bg-[#2a2824] text-[#e4ded2] border-[#3a3732]"}`}
+              className={`h-11 shrink-0 px-4 rounded-[10px] text-[15px] font-semibold border ${filter === f.id ? "bg-[#f4f1ea] text-[#1b1a17] border-[#f4f1ea]" : "bg-[#2a2824] text-[#e4ded2] border-[#3a3732]"}`}
             >
               {tr(f.label)}
             </button>
           ))}
         </div>
-        <div className="font-mono text-[26px] font-semibold pl-4" suppressHydrationWarning>{clock}</div>
+        <div className="font-mono text-xl sm:text-[26px] font-semibold sm:pl-4" suppressHydrationWarning>{clock}</div>
         <LangToggle className="size-12 rounded-xl bg-[#2a2824] text-[#f4f1ea] flex items-center justify-center" />
       </header>
 
       {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-2.5 font-semibold text-accent-text">{error}</p>}
 
+      <div role="tablist" aria-label={tr("Stage")} className="md:hidden grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[#1e1c19]">
+        {COLS.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            role="tab"
+            aria-selected={mobileCol === c.id}
+            onClick={() => setMobileCol(c.id)}
+            className={`h-11 rounded-lg text-sm font-semibold flex items-center justify-center gap-1.5 ${mobileCol === c.id ? "bg-[#f4f1ea] text-[#1b1a17]" : "text-[#e4ded2]"}`}
+          >
+            <span className="size-2 rounded-full shrink-0" style={{ background: c.dot }} />
+            <span className="truncate">{tr(c.label === "Ready for pickup" ? "Ready" : c.label)}</span>
+            <span className="font-mono text-xs opacity-70">{visible.filter((t) => stageOf(t) === c.id).length}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="grow min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4">
         {COLS.map((col) => {
           const list = visible.filter((t) => stageOf(t) === col.id).sort((a, b) => a.since.localeCompare(b.since));
           return (
-            <section key={col.id} className="min-h-0 flex flex-col gap-3 bg-[#1e1c19] rounded-[18px] p-3.5">
+            <section key={col.id} className={`min-h-0 flex-col gap-3 bg-[#1e1c19] rounded-[18px] p-3.5 ${mobileCol === col.id ? "flex" : "max-md:hidden md:flex"}`}>
               <div className="flex items-center gap-2.5 px-1 pt-0.5">
                 <span className="size-2.5 rounded-full" style={{ background: col.dot }} />
                 <h2 className="grow text-[17px] font-bold">{tr(col.label)}</h2>

@@ -219,10 +219,10 @@ export function FloorPlan({
 
   return (
     <div className="flex flex-col lg:flex-row lg:h-screen">
-      <main className="grow min-w-0 px-6 pt-5 pb-6 flex flex-col gap-4 lg:overflow-hidden">
+      <main className={`grow min-w-0 px-4 sm:px-6 pt-4 sm:pt-5 pb-5 sm:pb-6 flex flex-col gap-3.5 sm:gap-4 lg:overflow-hidden ${edit && sel ? "max-lg:pb-[48dvh]" : ""}`}>
         <header className="flex flex-wrap items-center gap-3">
           <div className="flex flex-col gap-0.5">
-            <h1 className="font-display text-[28px] font-bold tracking-tight">{edit ? tr("Edit floor plan") : tr("Floor plan")}</h1>
+            <h1 className="font-display text-2xl sm:text-[28px] font-bold tracking-tight">{edit ? tr("Edit floor plan") : tr("Floor plan")}</h1>
             <div className="text-sm text-muted">
               {edit
                 ? tr("{n} tables · {s} seats", { n: layout.length, s: totalSeats })
@@ -230,7 +230,7 @@ export function FloorPlan({
             </div>
           </div>
           <div className="grow" />
-          <div role="tablist" aria-label={tr("Area")} className="flex flex-wrap p-1 bg-ground-2 rounded-xl gap-1">
+          <div role="tablist" aria-label={tr("Area")} className="flex max-w-full overflow-x-auto sm:flex-wrap p-1 bg-ground-2 rounded-xl gap-1">
             {zones.map((z) => (
               <button
                 key={z}
@@ -241,7 +241,7 @@ export function FloorPlan({
                   setZone(z);
                   setSel(null);
                 }}
-                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${z === curZone ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
+                className={`h-10 shrink-0 whitespace-nowrap px-4 rounded-[9px] text-sm font-semibold ${z === curZone ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
               >
                 {tr(z)}
               </button>
@@ -302,7 +302,30 @@ export function FloorPlan({
 
         {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent-text">{error}</p>}
 
-        <div className="grow min-h-0 overflow-auto rounded-[18px]">
+        {!edit && (
+          <div className="md:hidden grid grid-cols-3 gap-2.5 content-start">
+            {(zoneTables as DiningTable[]).map((tb) => {
+              const o = orderByTable.get(tb.id);
+              const st = deriveStatus(tb, o);
+              const look = LOOKS[st];
+              return (
+                <button
+                  key={tb.id}
+                  type="button"
+                  onClick={() => setSel(tb.id)}
+                  aria-label={tr("Table {name}, {status}", { name: tb.name, status: tr(look.label) })}
+                  className="min-h-[92px] rounded-2xl px-2 py-3 flex flex-col items-center justify-center gap-0.5 text-center"
+                  style={{ background: look.bg, color: look.fg, border: `2px ${look.dashed ? "dashed" : "solid"} ${look.border}` }}
+                >
+                  <span className="font-display text-xl font-bold">T{tb.name}</span>
+                  <span className="text-xs font-semibold">{o ? `${o.guests ?? "–"} · ${tr("{n}m", { n: mins(o.createdAt) })}` : st === "available" ? tr("{n} seats", { n: tb.seats }) : tr(look.label)}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className={`grow min-h-0 overflow-auto rounded-[18px] ${edit ? "" : "max-md:hidden"}`}>
           <div
             onPointerMove={onMove}
             onPointerUp={onUp}
@@ -394,7 +417,16 @@ export function FloorPlan({
         </div>
       </main>
 
-      <aside aria-label={tr("Table details")} className="w-full lg:w-[380px] shrink-0 bg-panel border-l border-line flex flex-col p-6 gap-[18px] lg:h-screen">
+      {sel && !edit && <div className="lg:hidden fixed inset-0 z-[55] bg-black/40" onClick={() => setSel(null)} />}
+      <aside
+        aria-label={tr("Table details")}
+        className={`w-full lg:w-[380px] shrink-0 bg-panel border-l border-line flex flex-col p-4 sm:p-6 gap-[18px] lg:h-screen max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-[60] ${edit ? "max-lg:max-h-[45dvh]" : "max-lg:max-h-[88dvh]"} max-lg:overflow-auto max-lg:rounded-t-[20px] max-lg:border-l-0 max-lg:border-t max-lg:shadow-2xl max-lg:pb-[max(1.5rem,env(safe-area-inset-bottom))] ${sel ? "" : "max-lg:hidden"}`}
+      >
+        {sel && (
+          <button type="button" onClick={() => setSel(null)} aria-label={tr("Close")} className="lg:hidden self-center -mt-1 -mb-2 h-6 w-16 flex items-center justify-center">
+            <span className="h-1.5 w-12 rounded-full bg-line-2" />
+          </button>
+        )}
         {!edit && !selTable && <div className="m-auto text-center text-muted text-[15px] leading-relaxed max-w-[260px]">{tr("Tap a table to see its order, seat guests or take payment.")}</div>}
 
         {!edit && selTable && (
