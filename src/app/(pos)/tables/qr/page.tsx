@@ -8,7 +8,8 @@ import { getContext } from "@/lib/session";
 import { PrintClient } from "./PrintClient";
 import { QrCard } from "./QrCard";
 
-export default async function TableQrPage() {
+export default async function TableQrPage({ searchParams }: { searchParams: Promise<{ table?: string }> }) {
+  const { table: focus } = await searchParams;
   const { branch } = await getContext("tables.edit");
   const { t } = await getT();
   const h = await headers();
@@ -21,11 +22,11 @@ export default async function TableQrPage() {
   );
   const cards = rows.map((r) => {
     const url = `${proto}://${host}/t/${r.qr_token}`;
-    return { id: r.id, name: r.name, zone: r.zone, enabled: r.self_order, url, svg: renderSVG(url, { border: 1, ecc: "M" }) };
+    return { id: r.id, focus: r.id === focus, name: r.name, zone: r.zone, enabled: r.self_order, url, svg: renderSVG(url, { border: 1, ecc: "M" }) };
   });
 
   return (
-    <div className="p-4 sm:p-6 max-w-[1100px] mx-auto">
+    <div className="p-4 sm:p-6 max-w-[1100px] mx-auto pb-28 md:pb-6">
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <Link href="/tables" className="size-11 grid place-items-center rounded-xl border border-line bg-panel" aria-label={t("Back")}>
           <Icon name="back" />
@@ -36,7 +37,7 @@ export default async function TableQrPage() {
         </div>
         <PrintClient label={t("Print")} />
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2 print:gap-6">
         {cards.map((c) => (
           <QrCard key={c.id} {...c} />
         ))}

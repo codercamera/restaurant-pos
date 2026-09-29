@@ -27,6 +27,8 @@ const th: Record<string, string> = {
   "Make a new link? The printed QR code for this table will stop working.": "สร้างลิงก์ใหม่? คิวอาร์โค้ดที่พิมพ์ไว้ของโต๊ะนี้จะใช้ไม่ได้อีก",
   "Guest QR order": "ออเดอร์จากลูกค้า (QR)",
   "Back": "ย้อนกลับ",
+  "Table QR code": "คิวอาร์โค้ดโต๊ะนี้",
+  "Share": "แชร์",
   "Print": "พิมพ์",
 };
 export default th;

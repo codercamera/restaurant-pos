@@ -248,8 +248,8 @@ export function FloorPlan({
             ))}
           </div>
           {!edit && canEdit && (
-            <Link href="/tables/qr" className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
-              <Icon name="qr" size={18} /> {tr("QR codes")}
+            <Link href="/tables/qr" className="h-12 px-4 max-sm:w-12 max-sm:px-0 max-sm:justify-center rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2" aria-label={tr("QR codes")}>
+              <Icon name="qr" size={18} /> <span className="max-sm:sr-only">{tr("QR codes")}</span>
             </Link>
           )}
           {!edit && canEdit && (
@@ -476,6 +476,11 @@ export function FloorPlan({
               >
                 {selOrder ? tr("Open order") : tr("Start order")}
               </Link>
+              {canEdit && (
+                <Link href={`/tables/qr?table=${selTable.id}`} className="h-12 rounded-xl border border-line text-sm font-semibold flex items-center justify-center gap-2">
+                  <Icon name="qr" size={16} /> {tr("Table QR code")}
+                </Link>
+              )}
               {selOrder ? (
                 <Link href={`/checkout/${selOrder.id}`} className="h-12 rounded-xl border border-line text-sm font-semibold flex items-center justify-center">
                   {tr("Take payment")}
