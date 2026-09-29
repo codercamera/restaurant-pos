@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "next:build": "next build",
     "db:apply": "wrangler d1 execute DB --remote --file=db/schema.sql",
     "db:apply:local": "wrangler d1 execute DB --local --file=db/schema.sql",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"

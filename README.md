@@ -29,7 +29,7 @@ Next.js 16 (App Router) on Cloudflare Workers (OpenNext adapter) with a Cloudfla
 ## Deploy (Cloudflare Workers Builds)
 
 1. Workers & Pages → Create → Import a repository → pick this repo. The Worker name must be `restaurant-pos` (matches `wrangler.jsonc`).
-2. Build command: `npx opennextjs-cloudflare build` · Deploy command: `npx opennextjs-cloudflare deploy`.
+2. Build command: `npm run build` (runs `opennextjs-cloudflare build`) · Deploy command: `npx wrangler deploy` (Cloudflare's defaults work).
 3. The D1 database (`restaurant-pos`) is already bound in `wrangler.jsonc`. To (re)create the tables: `npm run db:apply`.
 
 Or from your machine: `npm install && npm run deploy`.
