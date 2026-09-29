@@ -37,7 +37,7 @@ export default async function TableQrPage({ searchParams }: { searchParams: Prom
         </div>
         <PrintClient label={t("Print")} />
       </div>
-      <div className="mt-5 grid gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2 print:gap-6">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2 print:gap-6">
         {cards.map((c) => (
           <QrCard key={c.id} {...c} />
         ))}

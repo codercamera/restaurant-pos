@@ -50,7 +50,7 @@ export function QrCard({ id, focus, name, zone, enabled, url, svg }: { id: strin
   return (
     <div
       id={`qr-${id}`}
-      className={`scroll-mt-4 rounded-2xl border bg-panel p-3 sm:p-4 flex flex-col break-inside-avoid print:border-line ${focus ? "border-accent ring-2 ring-accent" : "border-line"} ${enabled ? "" : "opacity-60"}`}
+      className={`min-w-0 max-w-full overflow-hidden scroll-mt-4 rounded-2xl border bg-panel p-3 sm:p-4 flex flex-col break-inside-avoid print:border-line ${focus ? "border-accent ring-2 ring-accent" : "border-line"} ${enabled ? "" : "opacity-60"}`}
     >
       <div className="flex items-center gap-3 sm:flex-col sm:text-center">
         <button
@@ -60,12 +60,12 @@ export function QrCard({ id, focus, name, zone, enabled, url, svg }: { id: strin
           className="shrink-0 size-20 sm:size-auto sm:w-full sm:max-w-64 print:size-auto print:w-full print:max-w-48 rounded-xl bg-white p-1.5 sm:p-2 [&>svg]:w-full [&>svg]:h-auto"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
-        <div className="grow min-w-0 sm:w-full">
+        <div className="grow min-w-0 w-0 sm:w-full">
           <div className="font-display text-xl font-bold leading-tight">{t("Table {n}", { n: name })}</div>
           {zone && <div className="text-xs text-muted">{t(zone)}</div>}
           {!enabled && <div className="text-xs font-bold text-muted-2 mt-0.5">{t("Turned off")}</div>}
           <p className="mt-1 text-sm font-semibold hidden print:block">{t("Scan to order")}</p>
-          <div className="mt-1 truncate font-mono text-[11px] text-muted print:hidden sm:mt-2" title={url}>{url}</div>
+          <div className="mt-1 max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[11px] text-muted print:hidden sm:mt-2" title={url}>{url}</div>
         </div>
         <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more} aria-label={t("More")} className="sm:hidden print:hidden size-12 shrink-0 grid place-items-center rounded-xl border border-line">
           <Icon name="list" size={18} />
