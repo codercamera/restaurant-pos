@@ -58,7 +58,7 @@ export type MenuItem = {
 };
 
 /** Menu item as sold at this branch (override price/availability applied) */
-export type SellableItem = MenuItem & { price: number; groups: OptionGroup[] };
+export type SellableItem = MenuItem & { price: number; groups: OptionGroup[]; image_id: string | null; images: string[] };
 
 export type DiningTable = {
   id: string;

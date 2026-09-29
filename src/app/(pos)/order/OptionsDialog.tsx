@@ -29,6 +29,7 @@ export function OptionsDialog({
     return init;
   });
   const [qty, setQty] = useState(1);
+  const [shot, setShot] = useState(0); // which photo is shown large
   const [notes, setNotes] = useState("");
   const firstRef = useRef<HTMLButtonElement>(null);
 
@@ -88,6 +89,29 @@ export function OptionsDialog({
         </div>
 
         <div className="grow overflow-auto p-4 sm:p-6 flex flex-col gap-6">
+          {item.images.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/api/menu-images/${item.images[Math.min(shot, item.images.length - 1)]}`} alt={item.name} className="w-full max-h-64 aspect-[4/3] object-cover rounded-xl bg-ground-2" />
+              {item.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {item.images.map((id, n) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setShot(n)}
+                      aria-label={t("Photo {n}", { n: n + 1 })}
+                      aria-pressed={n === shot}
+                      className={`aspect-square rounded-lg overflow-hidden border-2 ${n === shot ? "border-accent" : "border-transparent opacity-80"}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/menu-images/${id}`} alt="" className="size-full object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {item.groups.map((g) => {
             const req = g.is_required || g.min_select > 0;
             const hint =

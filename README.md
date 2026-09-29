@@ -19,6 +19,10 @@ Next.js 16 (App Router) on Cloudflare Workers (OpenNext adapter) with a Cloudfla
 
 Toggle with the **ไทย/EN** button (left rail, login page, kitchen header); the choice is a cookie. UI strings live in `src/lib/i18n/th/*.ts` (English text is the key; missing Thai falls back to English). Dish, category and option names have optional Thai columns (`name_th`, `description_th`) edited on the Menu page. Existing databases need `db/migrations/0002_thai_names.sql` once (already applied to the deployed D1).
 
+## Dish photos
+
+Each dish can have up to 4 photos; one is the **main** photo shown on the order screen (the others appear in the dish's options dialog). Manage them on the Menu page (edit a dish). Photos are shrunk to ~1000 px JPEGs in the browser and stored in D1 (`menu_item_images`, base64), served by `/api/menu-images/[id]` to signed-in staff of the same company. Existing databases need `db/migrations/0004_menu_images.sql` once (already applied to the deployed D1). If you outgrow D1 for images, move them to R2.
+
 ## Users and roles
 
 Roles: **admin, kitchen, cashier, customer**. Admins open **Users** to add people, change roles, reset passwords and deactivate accounts (at least one active admin is always kept). What each role may do is one table, `ROLE_PERMISSIONS` in `src/lib/permissions.ts`: admin has every permission; the other three have none yet, so they can sign in but land on a "No access yet" page until permissions are assigned. Every page and server action checks the permission (`getContext("checkout")` and so on). Existing databases need `db/migrations/0003_roles.sql` once (already applied to the deployed D1).

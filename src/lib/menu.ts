@@ -15,7 +15,9 @@ export async function loadSellableMenu(ctx: Ctx, lang: Lang = "en") {
     db.q<Omit<SellableItem, "groups">>(
       `select mi.id, mi.category_id, ${loc("mi.name", lang)} as name, ${loc("mi.description", lang)} as description, mi.base_price, mi.image_url, mi.sort_order,
               coalesce(o.price, mi.base_price) as price,
-              coalesce(o.is_available, mi.is_available) as is_available
+              coalesce(o.is_available, mi.is_available) as is_available,
+              (select id from menu_item_images where menu_item_id = mi.id order by is_primary desc, sort_order, rowid limit 1) as image_id,
+              coalesce((select json_group_array(x.id) from (select id from menu_item_images where menu_item_id = mi.id order by is_primary desc, sort_order, rowid) x), '[]') as images
          from menu_items mi
          join categories c on c.id = mi.category_id and c.is_active = 1
          left join menu_item_branch_overrides o on o.menu_item_id = mi.id and o.branch_id = ?2

@@ -281,6 +281,10 @@ export function OrderScreen({
                       n > 0 ? "border-accent" : "border-panel shadow-[inset_0_0_0_1px_var(--color-line)]"
                     }`}
                   >
+                    {item.image_id && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={`/api/menu-images/${item.image_id}`} alt="" loading="lazy" className="w-full aspect-[4/3] object-cover rounded-[10px] bg-ground-2" />
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted uppercase tracking-[0.06em]">
                         <span className="size-2 rounded-full" style={{ background: toneByCat.get(item.category_id) }} />

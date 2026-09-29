@@ -5,6 +5,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 interface D1Result<T> {
   results: T[];
   success: boolean;
+  meta?: { changes?: number };
 }
 interface D1Stmt {
   bind(...values: unknown[]): D1Stmt;
@@ -37,7 +38,7 @@ export function ph(start: number, count: number) {
   return Array.from({ length: count }, (_, i) => `?${start + i}`).join(",");
 }
 
-const JSON_KEYS = new Set(["options", "order_item_options", "option_choices", "items", "snapshot"]);
+const JSON_KEYS = new Set(["images", "options", "order_item_options", "option_choices", "items", "snapshot"]);
 
 function fix<T>(row: Record<string, unknown>): T {
   for (const k of Object.keys(row)) {
@@ -73,11 +74,13 @@ async function one<T = Record<string, unknown>>(sql: string, params: unknown[] =
   return rows[0] ?? null;
 }
 
-async function run(sql: string, params: unknown[] = []): Promise<void> {
-  await d1()
+/** Runs one statement; resolves to the number of rows it changed. */
+async function run(sql: string, params: unknown[] = []): Promise<number> {
+  const r = await d1()
     .prepare(sql)
     .bind(...params.map(bindable))
     .run();
+  return r.meta?.changes ?? 0;
 }
 
 /** Run statements atomically: D1 batches are a single transaction (all commit or none). */

@@ -6,10 +6,12 @@ import { Icon } from "@/components/Icon";
 import { useLang } from "@/lib/i18n/client";
 import { formatMoney } from "@/lib/money";
 import type { Category, MenuItem } from "@/lib/types";
+import { DishPhotos } from "./DishPhotos";
 import { deleteCategory, deleteItem, saveCategory, saveItem, setCategoryActive, setItemAvailable } from "./actions";
 
 export type CategoryRaw = Category & { name_th: string | null };
-export type ItemRaw = MenuItem & { options: string[]; name_th: string | null; description_th: string | null };
+export type ImageRaw = { id: string; is_primary: boolean };
+export type ItemRaw = Omit<MenuItem, "image_url"> & { options: string[]; name_th: string | null; description_th: string | null; images: ImageRaw[] };
 type Item = ItemRaw;
 type Form = { id: string | null; category_id: string; name: string; name_th: string; description: string; description_th: string; price: string };
 
@@ -149,7 +151,15 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
                 {list.length === 0 && <div className="p-10 text-center text-muted">{t("No dishes in this category yet.")}</div>}
                 {list.map((i) => (
                   <div key={i.id} className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-2 px-4 sm:px-5 py-3.5 border-b border-hair">
-                    <div className="grow min-w-[60%] sm:min-w-0 min-w-0">
+                    <div className="size-14 shrink-0 rounded-[10px] overflow-hidden bg-ground-2 border border-line flex items-center justify-center text-muted">
+                      {i.images[0] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={`/api/menu-images/${i.images.find((im) => im.is_primary)?.id ?? i.images[0].id}`} alt="" className="size-full object-cover" loading="lazy" />
+                      ) : (
+                        <Icon name="menu" size={20} />
+                      )}
+                    </div>
+                    <div className="grow min-w-[40%] sm:min-w-0 min-w-0">
                       <div className={`font-semibold ${i.is_available ? "" : "text-muted"}`}>{i.name}</div>
                       {i.name_th && <div className="text-xs text-muted">{i.name_th}</div>}
                       <div className="text-[13px] text-muted truncate">{i.description}</div>
@@ -198,7 +208,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
       </div>
 
       {form && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setForm(null)}>
+        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4" onClick={() => setForm(null)}>
           <form
             role="dialog"
             aria-modal="true"
@@ -241,6 +251,11 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
                 </select>
               </div>
             </div>
+            {form.id ? (
+              <DishPhotos itemId={form.id} images={items.find((x) => x.id === form.id)?.images ?? []} />
+            ) : (
+              <p className="rounded-[10px] bg-ground px-3 py-2.5 text-sm text-muted">{t("Save the dish first, then add up to 4 photos.")}</p>
+            )}
             <div className="flex gap-2.5 pt-2">
               <button type="button" onClick={() => setForm(null)} className="grow h-12 rounded-xl border border-line font-semibold">{t("Cancel")}</button>
               <button type="submit" disabled={pending} className="grow h-12 rounded-xl bg-accent text-white font-bold disabled:opacity-50 hover:bg-accent-dark">

@@ -70,6 +70,17 @@ create table if not exists menu_items (
   updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
+create table if not exists menu_item_images (
+  id text primary key default (lower(hex(randomblob(16)))),
+  menu_item_id text not null references menu_items(id),
+  content_type text not null default 'image/jpeg',
+  data_b64 text not null,
+  size_bytes integer not null default 0,
+  sort_order integer not null default 0,
+  is_primary integer not null default 0 check (is_primary in (0,1)),
+  created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
 create table if not exists menu_item_branch_overrides (
   id text primary key default (lower(hex(randomblob(16)))),
   menu_item_id text not null references menu_items(id),
@@ -256,3 +267,5 @@ create index if not exists order_items_status_idx on order_items (status);
 create index if not exists order_item_options_item_idx on order_item_options (order_item_id);
 create index if not exists payments_order_idx on payments (order_id);
 create index if not exists receipts_order_idx on receipts (order_id);
+create index if not exists menu_item_images_item_idx on menu_item_images (menu_item_id, sort_order);
+create unique index if not exists menu_item_images_primary_idx on menu_item_images (menu_item_id) where is_primary = 1;

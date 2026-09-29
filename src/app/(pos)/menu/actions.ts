@@ -135,12 +135,62 @@ export async function deleteItem(id: string): Promise<ActionResult<{ hidden: boo
     await db.batch([
       stmt("delete from option_choices where option_group_id in (select id from option_groups where menu_item_id = ?1)", id),
       stmt("delete from option_groups where menu_item_id = ?1", id),
+      stmt("delete from menu_item_images where menu_item_id = ?1", id),
       stmt("delete from menu_item_branch_overrides where menu_item_id = ?1", id),
       stmt("delete from menu_item_ingredients where menu_item_id = ?1", id),
       stmt("delete from menu_items where id = ?1", id),
     ]);
     done();
     return { ok: true, data: { hidden: false } };
+  } catch (e) {
+    return actionError(e, t);
+  }
+}
+
+/** Make one of a dish's photos the main (sample) photo shown on the order screen. */
+export async function setPrimaryImage(imageId: string): Promise<ActionResult> {
+  const { t } = await getT();
+  try {
+    const { staff } = await managerCtx();
+    if (!isUuid(imageId)) return { ok: false, error: t("Photo not found") };
+    const img = await db.one<{ menu_item_id: string }>(
+      `select i.menu_item_id from menu_item_images i join menu_items mi on mi.id = i.menu_item_id where i.id = ?1 and mi.company_id = ?2`,
+      [imageId, staff.company_id]
+    );
+    if (!img) return { ok: false, error: t("Photo not found") };
+    await db.batch([
+      stmt("update menu_item_images set is_primary = 0 where menu_item_id = ?1", img.menu_item_id),
+      stmt("update menu_item_images set is_primary = 1 where id = ?1", imageId),
+    ]);
+    done();
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return actionError(e, t);
+  }
+}
+
+/** Remove a photo; if it was the main one, the next photo takes over. */
+export async function deleteImage(imageId: string): Promise<ActionResult> {
+  const { t } = await getT();
+  try {
+    const { staff } = await managerCtx();
+    if (!isUuid(imageId)) return { ok: false, error: t("Photo not found") };
+    const img = await db.one<{ menu_item_id: string }>(
+      `select i.menu_item_id from menu_item_images i join menu_items mi on mi.id = i.menu_item_id where i.id = ?1 and mi.company_id = ?2`,
+      [imageId, staff.company_id]
+    );
+    if (!img) return { ok: false, error: t("Photo not found") };
+    await db.batch([
+      stmt("delete from menu_item_images where id = ?1", imageId),
+      stmt(
+        `update menu_item_images set is_primary = 1
+          where id = (select id from menu_item_images where menu_item_id = ?1 order by sort_order, rowid limit 1)
+            and not exists (select 1 from menu_item_images where menu_item_id = ?1 and is_primary = 1)`,
+        img.menu_item_id
+      ),
+    ]);
+    done();
+    return { ok: true, data: undefined };
   } catch (e) {
     return actionError(e, t);
   }
