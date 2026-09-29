@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { getSessionStaff } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
+import { can, type Permission } from "@/lib/permissions";
 import type { Branch } from "@/lib/types";
 
 /** Signed-in staff member + their branch. Redirects to /login when missing. */
-export async function getContext() {
+/** Signed-in staff member + branch. Pass a permission (or several, any-of) to also require it; otherwise redirects to /no-access. */
+export async function getContext(perm?: Permission | Permission[]) {
   const staff = await getSessionStaff();
   if (!staff) redirect("/login");
   if (!staff.branch_id) redirect("/login?nobranch=1");
@@ -17,14 +19,12 @@ export async function getContext() {
   );
   if (!branch) redirect("/login?nobranch=1");
 
+  if (perm && !can(staff.role, perm)) redirect("/no-access");
+
   return { staff: { ...staff, branch_id: staff.branch_id }, branch };
 }
 
 export type Ctx = Awaited<ReturnType<typeof getContext>>;
-
-export function canManage(role: string) {
-  return role === "owner" || role === "admin" || role === "manager";
-}
 
 /** For server actions: let Next.js redirects/notFound propagate, turn other errors into messages. */
 export async function actionError(e: unknown, t?: (key: string) => string): Promise<{ ok: false; error: string }> {

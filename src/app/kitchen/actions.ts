@@ -10,7 +10,7 @@ import type { ActionResult } from "@/lib/types";
 export async function advanceTicket(orderId: string, stage: "new" | "cooking" | "ready"): Promise<ActionResult> {
   try {
     const { t } = await getT();
-    const { branch } = await getContext();
+    const { branch } = await getContext("kitchen.view");
     if (!isUuid(orderId)) return { ok: false, error: t("Order not found") };
     const order = await db.one<{ status: string }>("select status from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);
     if (!order) return { ok: false, error: t("Order not found") };

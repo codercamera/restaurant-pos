@@ -1,11 +1,9 @@
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { canManage, getContext } from "@/lib/session";
+import { getContext } from "@/lib/session";
 import { MenuAdmin, type CategoryRaw, type ItemRaw } from "./MenuAdmin";
 
 export default async function MenuPage() {
-  const { staff, branch } = await getContext();
-  if (!canManage(staff.role)) redirect("/order");
+  const { staff, branch } = await getContext("menu.manage");
 
   const [categories, items] = await Promise.all([
     db.q<CategoryRaw>("select id, name, name_th, sort_order, is_active from categories where company_id = ?1 order by sort_order, name", [staff.company_id]),

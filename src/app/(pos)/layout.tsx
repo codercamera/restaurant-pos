@@ -1,5 +1,6 @@
 import { Rail } from "@/components/Rail";
-import { canManage, getContext } from "@/lib/session";
+import { permsOf } from "@/lib/permissions";
+import { getContext } from "@/lib/session";
 
 export default async function PosLayout({ children }: { children: React.ReactNode }) {
   const { staff } = await getContext();
@@ -11,7 +12,7 @@ export default async function PosLayout({ children }: { children: React.ReactNod
     .join("");
   return (
     <div className="flex min-h-screen">
-      <Rail initials={initials || "?"} canManage={canManage(staff.role)} />
+      <Rail initials={initials || "?"} perms={[...permsOf(staff.role)]} />
       <div className="grow min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
     </div>
   );

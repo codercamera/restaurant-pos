@@ -33,7 +33,7 @@ function refresh() {
 
 export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ orderId: string }>> {
   try {
-    const { staff, branch } = await getContext();
+    const { staff, branch } = await getContext("order.use");
     const { t } = await getT();
 
     if (!["dine_in", "takeaway", "delivery"].includes(input.orderType)) return { ok: false, error: t("Unknown order type") };
@@ -167,7 +167,7 @@ export async function saveOrder(input: SaveOrderInput): Promise<ActionResult<{ o
 
 export async function voidItem(itemId: string): Promise<ActionResult> {
   try {
-    const { branch } = await getContext();
+    const { branch } = await getContext("order.use");
     const { t } = await getT();
     if (!isUuid(itemId)) return { ok: false, error: t("Item not found") };
     const item = await db.one<{ order_id: string; status: string }>(
@@ -187,7 +187,7 @@ export async function voidItem(itemId: string): Promise<ActionResult> {
 
 export async function cancelOrder(orderId: string): Promise<ActionResult> {
   try {
-    const { branch } = await getContext();
+    const { branch } = await getContext("order.use");
     const { t } = await getT();
     if (!isUuid(orderId)) return { ok: false, error: t("Order not found") };
     const o = await db.one<{ table_id: string | null }>("select table_id from orders where id = ?1 and branch_id = ?2", [orderId, branch.id]);

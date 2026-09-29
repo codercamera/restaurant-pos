@@ -27,7 +27,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export default async function OrdersPage() {
-  const { branch } = await getContext();
+  const { branch } = await getContext("orders.view");
   const { t, lang } = await getT();
   const cols = `o.id, o.order_number, o.order_type, o.status, o.customer_name, o.grand_total, o.created_at, o.closed_at, t.name as table_name`;
   const [active, done] = await Promise.all([

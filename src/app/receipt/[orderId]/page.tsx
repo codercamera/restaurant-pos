@@ -30,7 +30,7 @@ const METHOD: Record<string, string> = { cash: "Cash", card: "Card", qr_promptpa
 
 export default async function ReceiptPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
-  const { branch } = await getContext();
+  const { branch } = await getContext(["orders.view", "checkout"]);
   const { t, lang } = await getT();
   if (!isUuid(orderId)) notFound();
   const data = await db.one<{ receipt_number: string; snapshot: unknown; printed_at: string }>(

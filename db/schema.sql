@@ -29,7 +29,7 @@ create table if not exists staff (
   full_name text not null,
   email text,
   password_hash text,
-  role text not null check (role in ('owner','admin','manager','cashier','kitchen','waiter')),
+  role text not null check (role in ('admin','kitchen','cashier','customer')),
   pin_code_hash text,
   is_active integer not null default 1 check (is_active in (0,1)),
   created_at text not null default (strftime('%Y-%m-%dT%H:%M:%fZ','now'))

@@ -1,11 +1,12 @@
 import { ACTIVE_SQL, db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { canManage, getContext } from "@/lib/session";
+import { can } from "@/lib/permissions";
+import { getContext } from "@/lib/session";
 import type { DiningTable } from "@/lib/types";
 import { FloorPlan, type TableOrder } from "./FloorPlan";
 
 export default async function TablesPage() {
-  const { branch, staff } = await getContext();
+  const { branch, staff } = await getContext("tables.view");
   const { lang } = await getT();
   const th = lang === "th";
 
@@ -37,5 +38,5 @@ export default async function TablesPage() {
     ),
   ]);
 
-  return <FloorPlan tables={tables} orders={orders} currency={branch.currency} canEdit={canManage(staff.role)} />;
+  return <FloorPlan tables={tables} orders={orders} currency={branch.currency} canEdit={can(staff.role, "tables.edit")} />;
 }

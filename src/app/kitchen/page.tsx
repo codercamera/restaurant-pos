@@ -20,7 +20,7 @@ type Row = {
 };
 
 export default async function KitchenPage() {
-  const { branch } = await getContext();
+  const { branch } = await getContext("kitchen.view");
   const { lang } = await getT();
   const th = lang === "th";
   const rows = await db.q<Row>(

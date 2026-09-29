@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 import { db, newId, stmt } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
+import { homeFor } from "@/lib/permissions";
 import { seedStatements } from "@/lib/seed";
 
 export type AuthState = { error?: string };
@@ -16,8 +17,8 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { error: t("Enter your email and password.") };
 
-  const staff = await db.one<{ id: string; password_hash: string | null; is_active: boolean }>(
-    "select id, password_hash, is_active from staff where lower(email) = ?1",
+  const staff = await db.one<{ id: string; password_hash: string | null; is_active: boolean; role: string }>(
+    "select id, password_hash, is_active, role from staff where lower(email) = ?1",
     [email]
   );
   const ok = staff?.password_hash ? await verifyPassword(password, staff.password_hash) : false;
@@ -25,7 +26,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   if (!staff.is_active) return { error: t("This account has been deactivated.") };
 
   await createSession(staff.id);
-  redirect("/order");
+  redirect(homeFor(staff.role));
 }
 
 /** Creates a restaurant (company + first branch) with the signer-up as owner. */
@@ -54,7 +55,7 @@ export async function createRestaurant(_prev: AuthState, formData: FormData): Pr
       stmt("insert into companies (id, name) values (?1, ?2)", companyId, company),
       stmt("insert into branches (id, company_id, name) values (?1, ?2, ?3)", branchId, companyId, branch),
       stmt(
-        "insert into staff (id, company_id, branch_id, full_name, email, password_hash, role) values (?1, ?2, ?3, ?4, ?5, ?6, 'owner')",
+        "insert into staff (id, company_id, branch_id, full_name, email, password_hash, role) values (?1, ?2, ?3, ?4, ?5, ?6, 'admin')",
         staffId,
         companyId,
         branchId,

@@ -8,7 +8,7 @@ import { OrderScreen } from "./OrderScreen";
 
 export default async function OrderPage({ searchParams }: { searchParams: Promise<{ order?: string; table?: string }> }) {
   const sp = await searchParams;
-  const ctx = await getContext();
+  const ctx = await getContext("order.use");
   const { lang } = await getT();
   const { branch, staff } = ctx;
   const tableParam = isUuid(sp.table) ? sp.table : null;

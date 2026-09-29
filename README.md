@@ -19,11 +19,15 @@ Next.js 16 (App Router) on Cloudflare Workers (OpenNext adapter) with a Cloudfla
 
 Toggle with the **ไทย/EN** button (left rail, login page, kitchen header); the choice is a cookie. UI strings live in `src/lib/i18n/th/*.ts` (English text is the key; missing Thai falls back to English). Dish, category and option names have optional Thai columns (`name_th`, `description_th`) edited on the Menu page. Existing databases need `db/migrations/0002_thai_names.sql` once (already applied to the deployed D1).
 
+## Users and roles
+
+Roles: **admin, kitchen, cashier, customer**. Admins open **Users** to add people, change roles, reset passwords and deactivate accounts (at least one active admin is always kept). What each role may do is one table, `ROLE_PERMISSIONS` in `src/lib/permissions.ts`: admin has every permission; the other three have none yet, so they can sign in but land on a "No access yet" page until permissions are assigned. Every page and server action checks the permission (`getContext("checkout")` and so on). Existing databases need `db/migrations/0003_roles.sql` once (already applied to the deployed D1).
+
 ## How it works
 
 - **Database**: D1 through the `DB` binding (`src/lib/db.ts`). `db/schema.sql` is idempotent. Writes that must succeed together use `db.batch()` — a D1 batch is one transaction.
 - **Auth**: email + password (PBKDF2 via Web Crypto), sessions in the `sessions` table (SHA-256 of a random token), httpOnly cookie `pos_session`, 30 days. There is no middleware; every server page/action calls `getContext()`, which redirects to `/login`.
-- **Access control**: every query is scoped to the signed-in staff member's `company_id` / `branch_id`. Menu and floor-plan edits need owner/admin/manager.
+- **Access control**: every query is scoped to the signed-in staff member's `company_id` / `branch_id`. Screens and actions are gated by role permissions (see Users and roles).
 - **Prices** are resolved on the server (branch overrides applied); the client never sets prices.
 - **Totals**: subtotal − discount → + service charge (branch %) → + tax (branch %) → + tip.
 - **Branch settings** on `branches`: `currency` (THB), `tax_rate` (7), `service_charge_rate` (0), `timezone` (Asia/Bangkok).

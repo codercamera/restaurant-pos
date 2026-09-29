@@ -20,7 +20,7 @@ export type PaymentResult = { completed: boolean; remaining: number; change: num
 
 export async function takePayment(input: PaymentInput): Promise<ActionResult<PaymentResult>> {
   try {
-    const { staff, branch } = await getContext();
+    const { staff, branch } = await getContext("checkout");
     const { t } = await getT();
     if (!isUuid(input.orderId)) return { ok: false, error: t("Order not found") };
     if (!["cash", "card", "qr_promptpay", "other"].includes(input.method)) return { ok: false, error: t("Unknown payment method") };

@@ -9,7 +9,7 @@ import { CheckoutScreen } from "./CheckoutScreen";
 
 export default async function CheckoutPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
-  const { branch, staff } = await getContext();
+  const { branch, staff } = await getContext("checkout");
   const { lang } = await getT();
   if (!isUuid(orderId)) notFound();
 

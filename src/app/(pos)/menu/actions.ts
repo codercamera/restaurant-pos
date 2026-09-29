@@ -3,13 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { db, isUuid, newId, NOW, stmt } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { actionError, canManage, getContext } from "@/lib/session";
+import { actionError, getContext } from "@/lib/session";
 import type { ActionResult } from "@/lib/types";
 
 async function managerCtx() {
-  const ctx = await getContext();
-  if (!canManage(ctx.staff.role)) throw new Error("Only managers can edit the menu");
-  return ctx;
+  return getContext("menu.manage");
 }
 
 function done() {

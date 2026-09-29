@@ -8,20 +8,26 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LangToggle } from "./LangToggle";
 import { useLang } from "@/lib/i18n/client";
 import { signOut } from "@/app/login/actions";
+import type { Permission } from "@/lib/permissions";
 
-const LINKS = [
-  { href: "/order", label: "New order", icon: "orders" as const },
-  { href: "/orders", label: "Orders", icon: "list" as const },
-  { href: "/tables", label: "Tables", icon: "tables" as const },
-  { href: "/kitchen", label: "Kitchen", icon: "kitchen" as const },
-  { href: "/menu", label: "Menu", icon: "menu" as const, manage: true },
+const LINKS: { href: string; label: string; icon: "orders" | "list" | "tables" | "kitchen" | "menu" | "user"; perm: Permission }[] = [
+  { href: "/order", label: "New order", icon: "orders", perm: "order.use" },
+  { href: "/orders", label: "Orders", icon: "list", perm: "orders.view" },
+  { href: "/tables", label: "Tables", icon: "tables", perm: "tables.view" },
+  { href: "/kitchen", label: "Kitchen", icon: "kitchen", perm: "kitchen.view" },
+  { href: "/menu", label: "Menu", icon: "menu", perm: "menu.manage" },
+  { href: "/users", label: "Users", icon: "user", perm: "users.manage" },
 ];
 
-export function Rail({ initials, canManage }: { initials: string; canManage: boolean }) {
+const PHONE_TABS = 4; // links beyond this go into the Settings sheet on phones
+
+export function Rail({ initials, perms }: { initials: string; perms: Permission[] }) {
   const path = usePathname();
   const { t } = useLang();
   const [more, setMore] = useState(false);
-  const links = LINKS.filter((l) => !l.manage || canManage);
+  const links = LINKS.filter((l) => perms.includes(l.perm));
+  const tabs = links.slice(0, PHONE_TABS);
+  const overflow = links.slice(PHONE_TABS);
   const isActive = (href: string) => path === href || path.startsWith(href + "/") || (href === "/orders" && path.startsWith("/checkout"));
 
   // Close the "more" sheet when the route changes.
@@ -68,7 +74,7 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
         aria-label={t("Main")}
         className="no-print md:hidden fixed inset-x-0 bottom-0 z-50 bg-rail border-t border-white/10 flex items-stretch px-1 pb-[env(safe-area-inset-bottom)]"
       >
-        {links.map((l) => {
+        {tabs.map((l) => {
           const active = isActive(l.href);
           return (
             <Link
@@ -91,7 +97,7 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
           onClick={() => setMore((v) => !v)}
           aria-expanded={more}
           aria-label={t("Settings")}
-          className={`flex-1 min-w-0 h-16 flex flex-col items-center justify-center gap-1 text-[11px] font-semibold leading-tight ${more ? "text-white" : "text-[#a9a396]"}`}
+          className={`flex-1 min-w-0 h-16 flex flex-col items-center justify-center gap-1 text-[11px] font-semibold leading-tight ${more || overflow.some((l) => isActive(l.href)) ? "text-white" : "text-[#a9a396]"}`}
         >
           <span className={`h-7 w-12 rounded-full flex items-center justify-center ${more ? "bg-rail-2" : ""}`}>
             <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -111,8 +117,20 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
             role="dialog"
             aria-label={t("Settings")}
             onClick={(e) => e.stopPropagation()}
-            className="absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] rounded-2xl bg-rail border border-white/10 p-3 flex items-center gap-2 shadow-2xl"
+            className="absolute inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] rounded-2xl bg-rail border border-white/10 p-3 flex flex-col gap-2 shadow-2xl"
           >
+            {overflow.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={isActive(l.href) ? "page" : undefined}
+                className={`h-12 px-3 rounded-xl flex items-center gap-3 text-[15px] font-semibold ${isActive(l.href) ? "bg-rail-2 text-white" : "text-[#c9c3b6]"}`}
+              >
+                <Icon name={l.icon} size={20} stroke={1.8} />
+                {t(l.label)}
+              </Link>
+            ))}
+            <div className="flex items-center gap-2">
             <div className="size-10 rounded-full bg-rail-2 text-[#f4f1ea] flex items-center justify-center text-sm font-semibold" title={t("Signed in")}>
               {initials}
             </div>
@@ -124,6 +142,7 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
                 <Icon name="logout" size={20} />
               </button>
             </form>
+            </div>
           </div>
         </div>
       )}

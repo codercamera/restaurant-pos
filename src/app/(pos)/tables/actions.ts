@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getT } from "@/lib/i18n/server";
 import { ACTIVE_SQL, db, isUuid, newId, stmt, type Stmt } from "@/lib/db";
-import { actionError, canManage, getContext } from "@/lib/session";
+import { actionError, getContext } from "@/lib/session";
 import type { ActionResult, TableStatus } from "@/lib/types";
 
 export type LayoutTable = {
@@ -23,8 +23,7 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, M
 export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: string[] }): Promise<ActionResult<{ hidden: number }>> {
   try {
     const { t } = await getT();
-    const { staff, branch } = await getContext();
-    if (!canManage(staff.role)) return { ok: false, error: t("Only managers can change the floor plan") };
+    const { branch } = await getContext("tables.edit");
 
     const rows = (input.tables ?? []).map((t) => ({
       id: isUuid(t.id) ? t.id : null,
@@ -85,7 +84,7 @@ export async function saveLayout(input: { tables: LayoutTable[]; deletedIds: str
 export async function setTableStatus(tableId: string, status: TableStatus): Promise<ActionResult> {
   try {
     const { t } = await getT();
-    const { branch } = await getContext();
+    const { branch } = await getContext("tables.view");
     if (!isUuid(tableId)) return { ok: false, error: t("Table not found") };
     if (!["available", "occupied", "reserved", "cleaning"].includes(status)) return { ok: false, error: t("Unknown status") };
     await db.run("update dining_tables set status = ?3 where id = ?1 and branch_id = ?2", [tableId, branch.id, status]);
