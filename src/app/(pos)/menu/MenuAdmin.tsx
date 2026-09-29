@@ -10,7 +10,7 @@ import { deleteCategory, deleteItem, saveCategory, saveItem, setCategoryActive, 
 type Item = MenuItem & { options: string[] };
 type Form = { id: string | null; category_id: string; name: string; description: string; price: string };
 
-const field = "h-12 w-full rounded-[10px] border border-line-2 bg-white px-3.5 text-[15px] font-medium outline-none focus:border-ink";
+const field = "h-12 w-full rounded-[10px] border border-line-2 bg-panel px-3.5 text-[15px] font-medium outline-none focus:border-ink";
 
 export function MenuAdmin({ categories, items, currency }: { categories: Category[]; items: Item[]; currency: string }) {
   const router = useRouter();
@@ -55,7 +55,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
       </header>
 
       {msg && (
-        <p role={msg.kind === "error" ? "alert" : "status"} className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${msg.kind === "error" ? "bg-accent-soft text-accent-dark" : "bg-good-soft text-good-dark"}`}>
+        <p role={msg.kind === "error" ? "alert" : "status"} className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${msg.kind === "error" ? "bg-accent-soft text-accent-text" : "bg-good-soft text-good-dark"}`}>
           {msg.text}
         </p>
       )}
@@ -64,7 +64,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
         <section aria-label="Categories" className="md:w-[300px] shrink-0 rounded-2xl border border-line bg-panel flex flex-col overflow-hidden">
           <div className="grow overflow-auto">
             {categories.map((c) => (
-              <div key={c.id} className={`flex items-center gap-2 px-3 min-h-14 border-b border-[#efeae0] ${c.id === cat ? "bg-ground" : ""}`}>
+              <div key={c.id} className={`flex items-center gap-2 px-3 min-h-14 border-b border-hair ${c.id === cat ? "bg-ground" : ""}`}>
                 {renaming?.id === c.id ? (
                   <form
                     className="grow flex gap-2 py-2"
@@ -75,7 +75,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
                   >
                     <label htmlFor={`rn-${c.id}`} className="sr-only">Category name</label>
                     <input id={`rn-${c.id}`} autoFocus value={renaming.name} onChange={(e) => setRenaming({ id: c.id, name: e.target.value })} className="grow h-10 rounded-lg border border-line-2 px-2.5 text-sm" />
-                    <button type="submit" className="h-10 px-3 rounded-lg bg-ink text-white text-sm font-bold">Save</button>
+                    <button type="submit" className="h-10 px-3 rounded-lg bg-strong text-on-strong text-sm font-bold">Save</button>
                   </form>
                 ) : (
                   <>
@@ -99,8 +99,8 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
             }}
           >
             <label htmlFor="new-cat" className="sr-only">New category</label>
-            <input id="new-cat" value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="New category" className="grow h-11 rounded-[10px] border border-line-2 bg-white px-3 text-sm" />
-            <button type="submit" disabled={pending || !newCat.trim()} className="h-11 px-3.5 rounded-[10px] bg-ink text-white text-sm font-bold disabled:opacity-40">Add</button>
+            <input id="new-cat" value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="New category" className="grow h-11 rounded-[10px] border border-line-2 bg-panel px-3 text-sm" />
+            <button type="submit" disabled={pending || !newCat.trim()} className="h-11 px-3.5 rounded-[10px] bg-strong text-on-strong text-sm font-bold disabled:opacity-40">Add</button>
           </form>
         </section>
 
@@ -113,7 +113,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
                   {current.is_active ? "Hide category" : "Show category"}
                 </button>
                 {list.length === 0 && (
-                  <button type="button" onClick={() => confirm(`Delete ${current.name}?`) && run(() => deleteCategory(current.id), "Category deleted", () => setCat(null))} className="h-10 px-3 rounded-lg border border-line text-sm font-semibold text-accent-dark">
+                  <button type="button" onClick={() => confirm(`Delete ${current.name}?`) && run(() => deleteCategory(current.id), "Category deleted", () => setCat(null))} className="h-10 px-3 rounded-lg border border-line text-sm font-semibold text-accent-text">
                     Delete
                   </button>
                 )}
@@ -128,7 +128,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
               <div className="grow overflow-auto">
                 {list.length === 0 && <div className="p-10 text-center text-muted">No dishes in this category yet.</div>}
                 {list.map((i) => (
-                  <div key={i.id} className="flex items-center gap-4 px-5 py-3.5 border-b border-[#efeae0]">
+                  <div key={i.id} className="flex items-center gap-4 px-5 py-3.5 border-b border-hair">
                     <div className="grow min-w-0">
                       <div className={`font-semibold ${i.is_available ? "" : "text-muted"}`}>{i.name}</div>
                       <div className="text-[13px] text-muted truncate">{i.description}</div>
@@ -161,7 +161,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
                           }
                         })
                       }
-                      className="size-10 rounded-lg border border-line text-accent-dark flex items-center justify-center"
+                      className="size-10 rounded-lg border border-line text-accent-text flex items-center justify-center"
                     >
                       <Icon name="trash" size={16} />
                     </button>
@@ -176,7 +176,7 @@ export function MenuAdmin({ categories, items, currency }: { categories: Categor
       </div>
 
       {form && (
-        <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4" onClick={() => setForm(null)}>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setForm(null)}>
           <form
             role="dialog"
             aria-modal="true"

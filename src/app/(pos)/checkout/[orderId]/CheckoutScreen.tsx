@@ -97,7 +97,7 @@ export function CheckoutScreen({
   };
 
   const tile = (on: boolean) =>
-    `rounded-2xl flex items-center justify-center gap-3 font-bold border-2 ${on ? "bg-ink text-white border-ink" : "bg-white text-ink border-line"}`;
+    `rounded-2xl flex items-center justify-center gap-3 font-bold border-2 ${on ? "bg-strong text-on-strong border-strong" : "bg-panel text-ink border-line"}`;
 
   return (
     <div className="flex flex-col lg:flex-row lg:h-screen">
@@ -119,7 +119,7 @@ export function CheckoutScreen({
 
         <div className="grow min-h-0 overflow-auto flex flex-col">
           {items.map((i) => (
-            <div key={i.id} className="flex items-baseline gap-3.5 py-3 border-b border-[#efeae0]">
+            <div key={i.id} className="flex items-baseline gap-3.5 py-3 border-b border-hair">
               <span className="font-mono text-[15px] font-semibold text-muted w-7">{i.quantity}×</span>
               <div className="grow min-w-0">
                 <div className="text-base font-semibold">{i.item_name}</div>
@@ -139,7 +139,7 @@ export function CheckoutScreen({
           <Row label={`Tax (${branch.tax_rate}%)`} value={money(tipLocked ? order.tax_total : totals.tax)} />
           <Row label="Tip" value={money(tip)} />
           {paid > 0 && <Row label="Paid so far" value={`−${money(paid)}`} />}
-          <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-[#d8d1c3]">
+          <div className="flex justify-between items-baseline pt-2.5 border-t border-dashed border-line-2">
             <span className="text-lg font-bold">{closed ? "Total paid" : "Amount due"}</span>
             <span className="font-mono text-[32px] font-semibold">{money(closed ? grand : remaining)}</span>
           </div>
@@ -149,7 +149,7 @@ export function CheckoutScreen({
       <main className="grow min-w-0 px-10 py-7 flex flex-col gap-5">
         {closed ? (
           <div className="grow flex flex-col items-center justify-center gap-5 text-center">
-            <div className="size-24 rounded-[28px] bg-good-soft text-good flex items-center justify-center">
+            <div className="size-24 rounded-[28px] bg-good-soft text-good-dark flex items-center justify-center">
               <Icon name="check" size={48} stroke={2.2} />
             </div>
             <h2 className="font-display text-[34px] font-bold">{order.status === "cancelled" ? "Order cancelled" : "Payment complete"}</h2>
@@ -163,10 +163,10 @@ export function CheckoutScreen({
               {payments.map((p) => `${METHOD_LABEL[p.method] ?? p.method} ${money(p.amount)}`).join(" · ")}
             </div>
             <div className="flex gap-3 mt-2">
-              <Link href={`/receipt/${order.id}`} target="_blank" className="h-14 px-6 rounded-xl border border-ink bg-white flex items-center gap-2 font-bold">
+              <Link href={`/receipt/${order.id}`} target="_blank" className="h-14 px-6 rounded-xl border border-ink bg-panel flex items-center gap-2 font-bold">
                 <Icon name="print" size={18} /> Print receipt
               </Link>
-              <Link href="/tables" className="h-14 px-6 rounded-xl border border-line bg-white flex items-center font-semibold">Floor plan</Link>
+              <Link href="/tables" className="h-14 px-6 rounded-xl border border-line bg-panel flex items-center font-semibold">Floor plan</Link>
               <Link href="/order" className="h-14 px-8 rounded-xl bg-accent text-white flex items-center font-bold hover:bg-accent-dark">New order</Link>
             </div>
           </div>
@@ -196,7 +196,7 @@ export function CheckoutScreen({
                         aria-pressed={on}
                         onClick={() => setTipPct(p)}
                         className={`flex-1 h-[60px] rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 disabled:opacity-40 ${
-                          on ? "bg-accent text-white border-accent" : "bg-white text-ink border-line"
+                          on ? "bg-accent text-white border-accent" : "bg-panel text-ink border-line"
                         }`}
                       >
                         <span className="text-base font-bold">{p === 0 ? "No tip" : `${p}%`}</span>
@@ -208,7 +208,7 @@ export function CheckoutScreen({
               </div>
               <div className="flex flex-col gap-2">
                 <div className="text-sm font-bold uppercase tracking-[0.06em] text-muted">Split bill</div>
-                <div className="flex items-center gap-1 bg-white border border-line rounded-xl p-1 h-[60px]">
+                <div className="flex items-center gap-1 bg-panel border border-line rounded-xl p-1 h-[60px]">
                   <button type="button" aria-label="Fewer ways" onClick={() => setWays((w) => Math.max(1, w - 1))} className="size-12 rounded-lg flex items-center justify-center">
                     <Icon name="minus" size={18} stroke={2.2} />
                   </button>
@@ -220,7 +220,7 @@ export function CheckoutScreen({
               </div>
             </div>
 
-            <div className="grow min-h-0 bg-white border border-line rounded-[18px] p-7 flex flex-col">
+            <div className="grow min-h-0 bg-panel border border-line rounded-[18px] p-7 flex flex-col">
               <div className="flex items-baseline justify-between pb-4 mb-4 border-b border-line">
                 <span className="text-base font-bold text-muted-2">{ways > 1 ? `This share (1 of ${ways})` : "Charging now"}</span>
                 <span className="font-mono text-[34px] font-semibold">{money(amount)}</span>
@@ -241,7 +241,7 @@ export function CheckoutScreen({
                       ))}
                     </div>
                     <div className="grow" />
-                    <div className={`flex items-center justify-between px-5 py-4 rounded-2xl ${changeDue >= 0 && received > 0 ? "bg-good-soft text-good-dark" : "bg-accent-soft text-accent-dark"}`}>
+                    <div className={`flex items-center justify-between px-5 py-4 rounded-2xl ${changeDue >= 0 && received > 0 ? "bg-good-soft text-good-dark" : "bg-accent-soft text-accent-text"}`}>
                       <span className="text-base font-bold">{changeDue >= 0 && received > 0 ? "Change due" : "Still owed"}</span>
                       <span className="font-mono text-3xl font-semibold">{money(received > 0 ? Math.abs(changeDue) : amount)}</span>
                     </div>
@@ -253,7 +253,7 @@ export function CheckoutScreen({
                         type="button"
                         onClick={() => press(k)}
                         aria-label={k === "del" ? "Delete digit" : k}
-                        className="h-[68px] rounded-[14px] border border-line bg-white font-mono text-2xl font-semibold active:bg-ground"
+                        className="h-[68px] rounded-[14px] border border-line bg-panel font-mono text-2xl font-semibold active:bg-ground"
                       >
                         {k === "del" ? "⌫" : k}
                       </button>
@@ -262,7 +262,7 @@ export function CheckoutScreen({
                 </div>
               ) : (
                 <div className="grow flex flex-col items-center justify-center gap-4 text-center">
-                  <div className="size-24 rounded-[28px] bg-good-soft text-good flex items-center justify-center">
+                  <div className="size-24 rounded-[28px] bg-good-soft text-good-dark flex items-center justify-center">
                     <Icon name={method === "card" ? "card" : "qr"} size={44} stroke={1.6} />
                   </div>
                   <p className="text-[17px] text-muted max-w-[440px] leading-relaxed">
@@ -275,7 +275,7 @@ export function CheckoutScreen({
             </div>
 
             {notice && <p role="status" className="rounded-xl bg-good-soft px-4 py-3 font-semibold text-good-dark">{notice}</p>}
-            {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-3 font-semibold text-accent-dark">{error}</p>}
+            {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-3 font-semibold text-accent-text">{error}</p>}
 
             <div className="flex items-center gap-3">
               {payments.length > 0 && (

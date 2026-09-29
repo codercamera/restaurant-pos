@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
+import { ThemeToggle } from "./ThemeToggle";
 import { signOut } from "@/app/login/actions";
 
 const LINKS = [
@@ -16,7 +17,7 @@ const LINKS = [
 export function Rail({ initials, canManage }: { initials: string; canManage: boolean }) {
   const path = usePathname();
   return (
-    <nav aria-label="Main" className="no-print w-[88px] shrink-0 bg-ink flex flex-col items-center py-5 gap-2 h-screen sticky top-0">
+    <nav aria-label="Main" className="no-print w-[88px] shrink-0 bg-rail flex flex-col items-center py-5 gap-2 h-screen sticky top-0">
       <div className="size-11 rounded-xl bg-accent text-white flex items-center justify-center font-display font-bold text-xl mb-5">F</div>
       {LINKS.filter((l) => !l.manage || canManage).map((l) => {
         const active = path === l.href || path.startsWith(l.href + "/") || (l.href === "/orders" && path.startsWith("/checkout"));
@@ -26,7 +27,7 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
             href={l.href}
             aria-current={active ? "page" : undefined}
             className={`w-[72px] py-2.5 rounded-xl flex flex-col items-center gap-1 text-[12px] font-semibold text-center leading-tight ${
-              active ? "bg-ink-2 text-white" : "text-[#c9c3b6] hover:text-white"
+              active ? "bg-rail-2 text-white" : "text-[#c9c3b6] hover:text-white"
             }`}
           >
             <Icon name={l.icon} size={22} stroke={1.8} />
@@ -35,9 +36,10 @@ export function Rail({ initials, canManage }: { initials: string; canManage: boo
         );
       })}
       <div className="grow" />
-      <div className="size-10 rounded-full bg-ink-2 text-ground flex items-center justify-center text-sm font-semibold" title="Signed in">
+      <div className="size-10 rounded-full bg-rail-2 text-[#f4f1ea] flex items-center justify-center text-sm font-semibold" title="Signed in">
         {initials}
       </div>
+      <ThemeToggle className="size-11 rounded-xl text-[#c9c3b6] hover:text-white flex items-center justify-center" />
       <form action={signOut}>
         <button type="submit" aria-label="Sign out" className="size-11 rounded-xl text-[#c9c3b6] hover:text-white flex items-center justify-center">
           <Icon name="logout" size={20} />

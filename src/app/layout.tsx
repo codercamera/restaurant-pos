@@ -17,9 +17,15 @@ export const viewport: Viewport = {
   themeColor: "#1b1a17",
 };
 
+// Runs before first paint: saved choice, else the OS setting.
+const THEME_SCRIPT = `try{var t=localStorage.getItem("pos_theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

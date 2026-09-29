@@ -21,13 +21,13 @@ export type TableOrder = {
 
 type Look = { label: string; bg: string; fg: string; border: string; dashed?: boolean };
 const LOOKS: Record<string, Look> = {
-  available: { label: "Available", bg: "#ffffff", fg: "#1b1a17", border: "#cfc7b7" },
-  seated: { label: "Seated", bg: "#dce7f5", fg: "#173e6d", border: "#8fb0d8" },
-  ordered: { label: "Ordered", bg: "#f8e6bf", fg: "#5e3d00", border: "#d9b35c" },
-  ready: { label: "Food ready", bg: "#e6f0ea", fg: "#1f4e38", border: "#6fbf95" },
-  served: { label: "Served", bg: "#9e2f18", fg: "#ffffff", border: "#9e2f18" },
-  reserved: { label: "Reserved", bg: "#efeae0", fg: "#1b1a17", border: "#8e887c", dashed: true },
-  cleaning: { label: "Needs cleaning", bg: "#f4f1ea", fg: "#5c574e", border: "#b9b1a1", dashed: true },
+  available: { label: "Available", bg: "var(--tbl-available-bg)", fg: "var(--tbl-available-fg)", border: "var(--tbl-available-border)" },
+  seated: { label: "Seated", bg: "var(--tbl-seated-bg)", fg: "var(--tbl-seated-fg)", border: "var(--tbl-seated-border)" },
+  ordered: { label: "Ordered", bg: "var(--tbl-ordered-bg)", fg: "var(--tbl-ordered-fg)", border: "var(--tbl-ordered-border)" },
+  ready: { label: "Food ready", bg: "var(--tbl-ready-bg)", fg: "var(--tbl-ready-fg)", border: "var(--tbl-ready-border)" },
+  served: { label: "Served", bg: "var(--tbl-served-bg)", fg: "var(--tbl-served-fg)", border: "var(--tbl-served-border)" },
+  reserved: { label: "Reserved", bg: "var(--tbl-reserved-bg)", fg: "var(--tbl-reserved-fg)", border: "var(--tbl-reserved-border)", dashed: true },
+  cleaning: { label: "Needs cleaning", bg: "var(--tbl-cleaning-bg)", fg: "var(--tbl-cleaning-fg)", border: "var(--tbl-cleaning-border)", dashed: true },
 };
 const LEGEND = ["available", "seated", "ordered", "ready", "served", "reserved", "cleaning"];
 
@@ -239,23 +239,23 @@ export function FloorPlan({
                   setZone(z);
                   setSel(null);
                 }}
-                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${z === curZone ? "bg-white text-ink shadow-sm" : "text-muted-2"}`}
+                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${z === curZone ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
               >
                 {z}
               </button>
             ))}
           </div>
           {!edit && canEdit && (
-            <button type="button" onClick={startEdit} className="h-12 px-4 rounded-xl border border-ink bg-white text-[15px] font-bold flex items-center gap-2">
+            <button type="button" onClick={startEdit} className="h-12 px-4 rounded-xl border border-ink bg-panel text-[15px] font-bold flex items-center gap-2">
               <Icon name="edit" size={18} /> Edit layout
             </button>
           )}
           {edit && (
             <>
-              <button type="button" onClick={() => addTable(true)} className="h-12 px-4 rounded-xl border border-line bg-white text-[15px] font-semibold flex items-center gap-2">
+              <button type="button" onClick={() => addTable(true)} className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
                 <Icon name="plus" size={16} /> Round table
               </button>
-              <button type="button" onClick={() => addTable(false)} className="h-12 px-4 rounded-xl border border-line bg-white text-[15px] font-semibold flex items-center gap-2">
+              <button type="button" onClick={() => addTable(false)} className="h-12 px-4 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center gap-2">
                 <Icon name="plus" size={16} /> Long table
               </button>
               <button type="button" onClick={() => setEdit(false)} disabled={pending} className="h-12 px-4 rounded-xl text-[15px] font-semibold text-muted-2">
@@ -283,8 +283,8 @@ export function FloorPlan({
               }}
             >
               <label htmlFor="new-zone" className="sr-only">New area name</label>
-              <input id="new-zone" value={newZone} onChange={(e) => setNewZone(e.target.value)} placeholder="New area, e.g. Patio" className="h-9 w-44 rounded-lg border border-line bg-white px-2.5 text-[13px] outline-none focus:border-ink" />
-              <button type="submit" className="h-9 px-3 rounded-lg bg-ink text-white text-[13px] font-bold">Add area</button>
+              <input id="new-zone" value={newZone} onChange={(e) => setNewZone(e.target.value)} placeholder="New area, e.g. Patio" className="h-9 w-44 rounded-lg border border-line bg-panel px-2.5 text-[13px] outline-none focus:border-ink" />
+              <button type="submit" className="h-9 px-3 rounded-lg bg-strong text-on-strong text-[13px] font-bold">Add area</button>
             </form>
           </div>
         ) : (
@@ -298,7 +298,7 @@ export function FloorPlan({
           </div>
         )}
 
-        {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent-dark">{error}</p>}
+        {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent-text">{error}</p>}
 
         <div className="grow min-h-0 overflow-auto rounded-[18px]">
           <div
@@ -308,11 +308,11 @@ export function FloorPlan({
             onClick={(e) => {
               if (e.target === e.currentTarget) setSel(null);
             }}
-            className={`relative rounded-[18px] ${edit ? "border-2 border-dashed border-line-2 bg-[#fdfcf9]" : "border border-line bg-white"}`}
+            className={`relative rounded-[18px] ${edit ? "border-2 border-dashed border-line-2 bg-panel-2" : "border border-line bg-panel"}`}
             style={{
               width: FLOOR_W + 4,
               height: FLOOR_H + 4,
-              backgroundImage: `radial-gradient(${edit ? "#cfc7b7" : "#e4ded2"} 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(${edit ? "var(--color-line-2)" : "var(--color-line)"} 1px, transparent 1px)`,
               backgroundSize: edit ? "16px 16px" : "24px 24px",
             }}
           >
@@ -339,8 +339,8 @@ export function FloorPlan({
                         width: t.width,
                         height: t.height,
                         borderRadius: t.shape === "round" ? 999 : 16,
-                        background: on ? "#fff" : "#fbfaf6",
-                        border: `2px dashed ${on ? "#b83a20" : "#b9b1a1"}`,
+                        background: on ? "var(--color-panel)" : "var(--color-panel-2)",
+                        border: `2px dashed ${on ? "var(--color-accent)" : "var(--color-line-2)"}`,
                         zIndex: on ? 2 : 1,
                         boxShadow: on ? "0 6px 18px rgba(27,26,23,.18)" : undefined,
                       }}
@@ -351,7 +351,7 @@ export function FloorPlan({
                         <span
                           aria-hidden="true"
                           onPointerDown={grab(t, "resize")}
-                          className="absolute -right-[9px] -bottom-[9px] size-5 rounded-md bg-ink border-[3px] border-white cursor-nwse-resize touch-none"
+                          className="absolute -right-[9px] -bottom-[9px] size-5 rounded-md bg-strong border-[3px] border-panel cursor-nwse-resize touch-none"
                         />
                       )}
                     </button>
@@ -379,7 +379,7 @@ export function FloorPlan({
                         background: look.bg,
                         color: look.fg,
                         border: `2px ${look.dashed ? "dashed" : "solid"} ${look.border}`,
-                        outline: on ? "3px solid #1b1a17" : undefined,
+                        outline: on ? "3px solid var(--color-ink)" : undefined,
                         outlineOffset: 4,
                       }}
                     >
@@ -417,7 +417,7 @@ export function FloorPlan({
                 <>
                   <div className="text-[13px] font-bold uppercase tracking-[0.06em] text-muted pb-1.5">On the check</div>
                   {selOrder.items.map((i, idx) => (
-                    <div key={idx} className="flex gap-3 py-3 border-b border-[#efeae0] text-[15px]">
+                    <div key={idx} className="flex gap-3 py-3 border-b border-hair text-[15px]">
                       <span className="font-mono text-muted w-7">{i.quantity}×</span>
                       <span className="grow font-semibold">{i.item_name}</span>
                       <span className="text-[13px] font-semibold capitalize text-muted-2">{i.status === "pending" ? "sent" : i.status}</span>
@@ -449,7 +449,7 @@ export function FloorPlan({
                       type="button"
                       disabled={pending || (s === "available" ? selStatus === "available" : selTable.status === s)}
                       onClick={() => setStatus(selTable.id, s)}
-                      className="flex-1 h-12 rounded-xl border border-line bg-white text-[13px] font-semibold disabled:opacity-40"
+                      className="flex-1 h-12 rounded-xl border border-line bg-panel text-[13px] font-semibold disabled:opacity-40"
                     >
                       {s === "available" ? "Mark free" : s === "reserved" ? "Reserve" : "Needs cleaning"}
                     </button>
@@ -470,7 +470,7 @@ export function FloorPlan({
           <>
             <div className="flex items-center justify-between">
               <h2 className="font-display text-[26px] font-bold">Edit table</h2>
-              <span className="text-[13px] font-bold px-3 py-1.5 rounded-full bg-[#efeae0]">{layout.length} tables</span>
+              <span className="text-[13px] font-bold px-3 py-1.5 rounded-full bg-hair">{layout.length} tables</span>
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="t-name" className="text-[13px] font-bold text-muted-2">Table name</label>
@@ -493,7 +493,7 @@ export function FloorPlan({
                     onClick={() =>
                       update(selEdit.key, s === "round" ? { shape: "round", height: selEdit.width } : { shape: "rect", width: Math.max(selEdit.width, 160), height: Math.min(selEdit.height, 104) })
                     }
-                    className={`h-12 rounded-[10px] border text-[15px] font-semibold ${selEdit.shape === s ? "bg-ink text-white border-ink" : "bg-white border-line"}`}
+                    className={`h-12 rounded-[10px] border text-[15px] font-semibold ${selEdit.shape === s ? "bg-strong text-on-strong border-strong" : "bg-panel border-line"}`}
                   >
                     {s === "round" ? "Round" : "Rectangle"}
                   </button>
@@ -517,7 +517,7 @@ export function FloorPlan({
                     update(selEdit.key, { zone: e.target.value });
                     setZone(e.target.value);
                   }}
-                  className="h-11 rounded-[10px] border border-line bg-white px-3 text-sm font-semibold"
+                  className="h-11 rounded-[10px] border border-line bg-panel px-3 text-sm font-semibold"
                 >
                   {zones.map((z) => (
                     <option key={z} value={z}>{z}</option>
@@ -533,7 +533,7 @@ export function FloorPlan({
                   setLayout((p) => [...p, fit({ ...selEdit, key, id: null, name: nextName(), pos_x: selEdit.pos_x + 24, pos_y: selEdit.pos_y + 24 })]);
                   setSel(key);
                 }}
-                className="h-12 rounded-xl border border-line bg-white text-[15px] font-semibold flex items-center justify-center gap-2"
+                className="h-12 rounded-xl border border-line bg-panel text-[15px] font-semibold flex items-center justify-center gap-2"
               >
                 <Icon name="copy" size={18} /> Duplicate table
               </button>
@@ -549,7 +549,7 @@ export function FloorPlan({
                     setLayout((p) => p.filter((t) => t.key !== selEdit.key));
                     setSel(null);
                   }}
-                  className="h-12 rounded-xl border border-[#e8b9a9] bg-[#fbede7] text-accent-dark text-[15px] font-bold flex items-center justify-center gap-2"
+                  className="h-12 rounded-xl border border-accent/40 bg-accent-soft text-accent-text text-[15px] font-bold flex items-center justify-center gap-2"
                 >
                   <Icon name="trash" size={18} /> Delete table
                 </button>

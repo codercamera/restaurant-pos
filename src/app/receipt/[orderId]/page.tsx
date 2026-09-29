@@ -47,7 +47,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
   return (
     <main className="min-h-screen flex flex-col items-center gap-4 py-8 px-4">
       <div className="no-print flex gap-2">
-        <Link href="/orders" className="h-11 px-4 rounded-xl border border-line bg-white font-semibold flex items-center">Back to orders</Link>
+        <Link href="/orders" className="h-11 px-4 rounded-xl border border-line bg-panel font-semibold flex items-center">Back to orders</Link>
         <PrintButton />
       </div>
       <article className="w-[320px] bg-white p-5 font-mono text-[13px] leading-snug text-black shadow-sm print:shadow-none">

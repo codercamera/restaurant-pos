@@ -192,7 +192,7 @@ export function OrderScreen({
 
   const chip = (active: boolean) =>
     `inline-flex items-center gap-2 h-11 px-[18px] rounded-full text-[15px] font-semibold border ${
-      active ? "bg-ink text-white border-ink" : "bg-white text-ink border-line hover:border-line-2"
+      active ? "bg-strong text-on-strong border-strong" : "bg-panel text-ink border-line hover:border-line-2"
     }`;
 
   const now = new Date();
@@ -218,7 +218,7 @@ export function OrderScreen({
           </div>
           <div className="grow" />
           <label htmlFor="menu-search" className="sr-only">Search menu</label>
-          <div className="flex items-center gap-2 h-12 w-[300px] max-w-full px-3.5 bg-white border border-line rounded-xl text-muted">
+          <div className="flex items-center gap-2 h-12 w-[300px] max-w-full px-3.5 bg-panel border border-line rounded-xl text-muted">
             <Icon name="search" size={18} stroke={2} />
             <input
               id="menu-search"
@@ -237,7 +237,7 @@ export function OrderScreen({
                 aria-pressed={orderType === t.id}
                 disabled={closed}
                 onClick={() => setOrderType(t.id)}
-                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${orderType === t.id ? "bg-white text-ink shadow-sm" : "text-muted-2"}`}
+                className={`h-10 px-4 rounded-[9px] text-sm font-semibold ${orderType === t.id ? "bg-panel text-ink shadow-sm" : "text-muted-2"}`}
               >
                 {t.label}
               </button>
@@ -274,8 +274,8 @@ export function OrderScreen({
                     type="button"
                     onClick={() => onPick(item)}
                     disabled={off || closed}
-                    className={`text-left flex flex-col gap-2 p-4 min-h-[176px] rounded-[14px] bg-white border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      n > 0 ? "border-accent" : "border-white shadow-[inset_0_0_0_1px_var(--color-line)]"
+                    className={`text-left flex flex-col gap-2 p-4 min-h-[176px] rounded-[14px] bg-panel border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      n > 0 ? "border-accent" : "border-panel shadow-[inset_0_0_0_1px_var(--color-line)]"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -286,7 +286,7 @@ export function OrderScreen({
                       {n > 0 && (
                         <span className="min-w-[26px] h-[26px] px-1.5 rounded-full bg-accent text-white font-mono text-[13px] font-semibold inline-flex items-center justify-center">{n}</span>
                       )}
-                      {off && <span className="text-xs font-bold text-accent-dark">Sold out</span>}
+                      {off && <span className="text-xs font-bold text-accent-text">Sold out</span>}
                     </div>
                     <div className="text-[17px] font-bold leading-tight">{item.name}</div>
                     <div className="grow text-[13px] text-muted leading-snug line-clamp-2">{item.description}</div>
@@ -328,7 +328,7 @@ export function OrderScreen({
                 value={tableId}
                 disabled={closed}
                 onChange={(e) => setTableId(e.target.value)}
-                className={`grow h-11 rounded-[10px] border bg-white px-3 text-sm font-semibold ${needsTable && draft.length ? "border-accent" : "border-line"}`}
+                className={`grow h-11 rounded-[10px] border bg-panel px-3 text-sm font-semibold ${needsTable && draft.length ? "border-accent" : "border-line"}`}
               >
                 <option value="">Choose table…</option>
                 {tables.map((t) => (
@@ -359,7 +359,7 @@ export function OrderScreen({
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder={orderType === "delivery" ? "Customer / delivery ref" : "Customer name"}
-                className="h-11 rounded-[10px] border border-line bg-white px-3 text-sm font-semibold outline-none focus:border-ink"
+                className="h-11 rounded-[10px] border border-line bg-panel px-3 text-sm font-semibold outline-none focus:border-ink"
               />
             </div>
           )}
@@ -375,17 +375,17 @@ export function OrderScreen({
                 const st = ITEM_STATUS[i.status] ?? ITEM_STATUS.pending;
                 const lt = (i.unit_price + i.order_item_options.reduce((a, o) => a + o.price_delta, 0)) * i.quantity;
                 return (
-                  <div key={i.id} className={`flex items-start gap-3 py-3 border-b border-[#efeae0] ${i.status === "cancelled" ? "opacity-60" : ""}`}>
+                  <div key={i.id} className={`flex items-start gap-3 py-3 border-b border-hair ${i.status === "cancelled" ? "opacity-60" : ""}`}>
                     <span className="font-mono text-sm text-muted w-7 pt-0.5">{i.quantity}×</span>
                     <div className="grow min-w-0">
                       <div className={`text-[15px] font-semibold ${i.status === "cancelled" ? "line-through" : ""}`}>{i.item_name}</div>
                       {i.order_item_options.length > 0 && <div className="text-[13px] text-muted">{i.order_item_options.map((o) => o.choice_name).join(", ")}</div>}
-                      {i.notes && <div className="text-[13px] text-accent-dark">“{i.notes}”</div>}
+                      {i.notes && <div className="text-[13px] text-accent-text">“{i.notes}”</div>}
                     </div>
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
                     <span className="font-mono text-sm font-semibold w-[76px] text-right">{i.status === "cancelled" ? "—" : money(lt)}</span>
                     {(i.status === "pending" || i.status === "preparing") && !closed && (
-                      <button type="button" onClick={() => onVoid(i.id)} aria-label={`Void ${i.item_name}`} className="size-8 -my-1 rounded-lg text-muted hover:bg-accent-soft hover:text-accent-dark flex items-center justify-center">
+                      <button type="button" onClick={() => onVoid(i.id)} aria-label={`Void ${i.item_name}`} className="size-8 -my-1 rounded-lg text-muted hover:bg-accent-soft hover:text-accent-text flex items-center justify-center">
                         <Icon name="trash" size={16} />
                       </button>
                     )}
@@ -397,13 +397,13 @@ export function OrderScreen({
 
           {draft.length > 0 && (
             <div className="pt-3">
-              {orderItems.length > 0 && <div className="text-xs font-bold uppercase tracking-[0.06em] text-accent-dark pb-1">New — not sent yet</div>}
+              {orderItems.length > 0 && <div className="text-xs font-bold uppercase tracking-[0.06em] text-accent-text pb-1">New — not sent yet</div>}
               {draft.map((d) => (
-                <div key={d.key} className="flex items-center gap-3 py-3 border-b border-[#efeae0]">
+                <div key={d.key} className="flex items-center gap-3 py-3 border-b border-hair">
                   <div className="grow min-w-0 flex flex-col gap-0.5">
                     <div className="text-[15px] font-semibold">{d.name}</div>
                     {d.choiceNames.length > 0 && <div className="text-[13px] text-muted">{d.choiceNames.join(", ")}</div>}
-                    {d.notes && <div className="text-[13px] text-accent-dark">“{d.notes}”</div>}
+                    {d.notes && <div className="text-[13px] text-accent-text">“{d.notes}”</div>}
                     <div className="font-mono text-[13px] text-muted">{money(d.unit)} each</div>
                   </div>
                   <div className="flex items-center gap-1 bg-ground rounded-[10px] p-0.5">
@@ -443,14 +443,14 @@ export function OrderScreen({
             <div className="flex justify-between text-[15px] text-muted"><span>Service ({branch.service_charge_rate}%)</span><span className="font-mono text-ink">{money(totals.service)}</span></div>
           )}
           <div className="flex justify-between text-[15px] text-muted"><span>Tax ({branch.tax_rate}%)</span><span className="font-mono text-ink">{money(totals.tax)}</span></div>
-          <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-[#d8d1c3]">
+          <div className="flex justify-between items-baseline pt-2 border-t border-dashed border-line-2">
             <span className="text-[17px] font-bold">Total</span>
             <span className="font-mono text-[26px] font-semibold">{money(totals.grand)}</span>
           </div>
-          {error && <p role="alert" className="rounded-[10px] bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-dark">{error}</p>}
+          {error && <p role="alert" className="rounded-[10px] bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-text">{error}</p>}
           {closed ? (
             <div className="flex gap-2.5 mt-1.5">
-              <Link href={`/receipt/${order!.id}`} className="grow h-14 rounded-xl border border-ink bg-white flex items-center justify-center gap-2 font-bold">
+              <Link href={`/receipt/${order!.id}`} className="grow h-14 rounded-xl border border-ink bg-panel flex items-center justify-center gap-2 font-bold">
                 <Icon name="print" size={18} /> Receipt
               </Link>
               <Link href="/order" className="grow h-14 rounded-xl bg-accent text-white flex items-center justify-center font-bold hover:bg-accent-dark">New order</Link>
@@ -461,7 +461,7 @@ export function OrderScreen({
                 type="button"
                 disabled={pending || (!draft.length && !!order)}
                 onClick={() => submit(false)}
-                className="grow h-14 rounded-xl border border-ink bg-white text-base font-bold disabled:opacity-40 flex items-center justify-center gap-2"
+                className="grow h-14 rounded-xl border border-ink bg-panel text-base font-bold disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <Icon name="send" size={18} /> {pending ? "Saving…" : "Send to kitchen"}
               </button>

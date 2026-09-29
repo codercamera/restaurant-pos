@@ -67,7 +67,7 @@ export function OptionsDialog({
   const unit = round2(item.price + extra);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
@@ -96,7 +96,7 @@ export function OptionsDialog({
               <fieldset key={g.id} className="flex flex-col gap-2.5">
                 <legend className="mb-2.5 flex w-full items-baseline justify-between">
                   <span className="text-[17px] font-bold">{g.name}</span>
-                  <span className={`text-[13px] font-semibold ${req ? "text-accent-dark" : "text-muted"}`}>{hint}</span>
+                  <span className={`text-[13px] font-semibold ${req ? "text-accent-text" : "text-muted"}`}>{hint}</span>
                 </legend>
                 <div className="grid grid-cols-2 gap-2">
                   {g.option_choices.map((c) => {
@@ -109,7 +109,7 @@ export function OptionsDialog({
                         aria-pressed={on}
                         onClick={() => toggle(g.id, c.id)}
                         className={`min-h-[52px] rounded-xl border-2 px-3.5 py-2 text-left flex items-center justify-between gap-2 disabled:opacity-40 ${
-                          on ? "border-ink bg-ink text-white" : "border-line bg-white text-ink"
+                          on ? "border-strong bg-strong text-on-strong" : "border-line bg-panel text-ink"
                         }`}
                       >
                         <span className="text-[15px] font-semibold">{c.name}</span>

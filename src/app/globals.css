@@ -21,10 +21,63 @@
   --color-warn-soft: #f8e6bf;
   --color-info: #173e6d;
   --color-info-soft: #dce7f5;
+  --color-accent-text: #8f2c17;
+  --color-hair: #efeae0;
+  --color-strong: #1b1a17;
+  --color-on-strong: #ffffff;
+  --color-rail: #1b1a17;
+  --color-rail-2: #34322d;
+
+  --tbl-available-bg: #ffffff;  --tbl-available-fg: #1b1a17;  --tbl-available-border: #cfc7b7;
+  --tbl-seated-bg: #dce7f5;     --tbl-seated-fg: #173e6d;     --tbl-seated-border: #8fb0d8;
+  --tbl-ordered-bg: #f8e6bf;    --tbl-ordered-fg: #5e3d00;    --tbl-ordered-border: #d9b35c;
+  --tbl-ready-bg: #e6f0ea;      --tbl-ready-fg: #1f4e38;      --tbl-ready-border: #6fbf95;
+  --tbl-served-bg: #9e2f18;     --tbl-served-fg: #ffffff;     --tbl-served-border: #9e2f18;
+  --tbl-reserved-bg: #efeae0;   --tbl-reserved-fg: #1b1a17;   --tbl-reserved-border: #8e887c;
+  --tbl-cleaning-bg: #f4f1ea;   --tbl-cleaning-fg: #5c574e;   --tbl-cleaning-border: #b9b1a1;
 
   --font-display: var(--font-bricolage), Georgia, serif;
   --font-sans: var(--font-instrument), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* Dark theme: set on <html data-theme="dark"> by the inline script in layout.tsx / ThemeToggle. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ground: #14130f;
+  --color-ground-2: #26231e;
+  --color-panel: #1e1c18;
+  --color-panel-2: #24211c;
+  --color-ink: #f1ede4;
+  --color-ink-2: #d8d3c7;
+  --color-muted: #a39d90;
+  --color-muted-2: #b4aea1;
+  --color-line: #37332c;
+  --color-line-2: #4b463d;
+  --color-hair: #2d2a24;
+  --color-accent: #d4472b;
+  --color-accent-dark: #b83a20;
+  --color-accent-soft: #3d221b;
+  --color-accent-text: #f2a591;
+  --color-good: #3f8a66;
+  --color-good-dark: #8fd0ae;
+  --color-good-soft: #1d3329;
+  --color-warn: #f0c877;
+  --color-warn-soft: #3d2f12;
+  --color-info: #a9c6ec;
+  --color-info-soft: #1c2c43;
+  --color-strong: #f1ede4;
+  --color-on-strong: #1b1a17;
+  --color-rail: #0d0c0a;
+  --color-rail-2: #2a2824;
+
+  --tbl-available-bg: #26231e;  --tbl-available-fg: #f1ede4;  --tbl-available-border: #5a544a;
+  --tbl-seated-bg: #1c2c43;     --tbl-seated-fg: #a9c6ec;     --tbl-seated-border: #4a6f9e;
+  --tbl-ordered-bg: #3d2f12;    --tbl-ordered-fg: #f0c877;    --tbl-ordered-border: #a4832f;
+  --tbl-ready-bg: #1d3329;      --tbl-ready-fg: #8fd0ae;      --tbl-ready-border: #3f8a66;
+  --tbl-served-bg: #b83a20;     --tbl-served-fg: #ffffff;     --tbl-served-border: #b83a20;
+  --tbl-reserved-bg: #2d2a24;   --tbl-reserved-fg: #f1ede4;   --tbl-reserved-border: #8e887c;
+  --tbl-cleaning-bg: #1a1814;   --tbl-cleaning-fg: #b4aea1;   --tbl-cleaning-border: #5a544a;
 }
 
 html,

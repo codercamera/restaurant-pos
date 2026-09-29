@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { createRestaurant, signIn, type AuthState } from "./actions";
 
 const input =
-  "h-12 w-full rounded-[10px] border border-line-2 bg-white px-3.5 text-[16px] font-medium text-ink outline-none focus:border-ink";
+  "h-12 w-full rounded-[10px] border border-line-2 bg-panel px-3.5 text-[16px] font-medium text-ink outline-none focus:border-ink";
 
 function Field({ id, label, ...rest }: { id: string; label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
@@ -53,7 +53,7 @@ export function LoginForm({ notice }: { notice?: string }) {
           </span>
         </label>
       )}
-      {state.error && <p role="alert" className="rounded-[10px] bg-accent-soft px-3.5 py-2.5 text-sm font-semibold text-accent-dark">{state.error}</p>}
+      {state.error && <p role="alert" className="rounded-[10px] bg-accent-soft px-3.5 py-2.5 text-sm font-semibold text-accent-text">{state.error}</p>}
       <button type="submit" disabled={pending} className="h-14 rounded-xl bg-accent text-white text-base font-bold disabled:opacity-60 hover:bg-accent-dark">
         {pending ? "Please wait…" : mode === "in" ? "Sign in" : "Create restaurant"}
       </button>

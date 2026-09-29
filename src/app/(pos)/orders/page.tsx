@@ -19,7 +19,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   open: { label: "Open", cls: "bg-info-soft text-info" },
   sent_to_kitchen: { label: "In kitchen", cls: "bg-warn-soft text-warn" },
   ready: { label: "Food ready", cls: "bg-good-soft text-good-dark" },
-  served: { label: "Served", cls: "bg-accent-soft text-accent-dark" },
+  served: { label: "Served", cls: "bg-accent-soft text-accent-text" },
   completed: { label: "Paid", cls: "bg-ground-2 text-muted-2" },
   cancelled: { label: "Cancelled", cls: "bg-ground-2 text-muted-2" },
 };
@@ -53,7 +53,7 @@ export default async function OrdersPage() {
           <Link
             key={o.id}
             href={closed ? (o.status === "completed" ? `/receipt/${o.id}` : `/order?order=${o.id}`) : `/order?order=${o.id}`}
-            className="flex items-center gap-4 px-5 min-h-16 border-b border-[#efeae0] last:border-b-0 hover:bg-panel-2"
+            className="flex items-center gap-4 px-5 min-h-16 border-b border-hair last:border-b-0 hover:bg-panel-2"
           >
             <span className="font-mono text-lg font-semibold w-16">#{o.order_number}</span>
             <span className="grow font-semibold">
