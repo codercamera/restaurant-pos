@@ -22,7 +22,8 @@ type IconName =
   | "copy"
   | "alert"
   | "close"
-  | "send";
+  | "send"
+  | "dashboard";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   orders: (<><path d="M6 2h12l1 4H5z" /><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6" /><path d="M9 11h6M9 15h4" /></>),
@@ -48,6 +49,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   copy: (<><rect x="8" y="8" width="13" height="13" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></>),
   alert: (<><path d="M12 3l10 18H2z" /><path d="M12 10v4M12 17.5v.5" /></>),
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  dashboard: (<><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>),
   send: (<><path d="M4 12l16-8-6 16-3-7z" /><path d="M11 13l9-9" /></>),
 };
 

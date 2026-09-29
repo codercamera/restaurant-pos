@@ -10,12 +10,13 @@ import { useLang } from "@/lib/i18n/client";
 import { signOut } from "@/app/login/actions";
 import type { Permission } from "@/lib/permissions";
 
-const LINKS: { href: string; label: string; icon: "orders" | "list" | "tables" | "kitchen" | "menu" | "user"; perm: Permission }[] = [
+const LINKS: { href: string; label: string; icon: "orders" | "list" | "tables" | "kitchen" | "menu" | "user" | "dashboard"; perm: Permission }[] = [
   { href: "/order", label: "New order", icon: "orders", perm: "order.use" },
   { href: "/orders", label: "Orders", icon: "list", perm: "orders.view" },
   { href: "/tables", label: "Tables", icon: "tables", perm: "tables.view" },
   { href: "/kitchen", label: "Kitchen", icon: "kitchen", perm: "kitchen.view" },
   { href: "/menu", label: "Menu", icon: "menu", perm: "menu.manage" },
+  { href: "/dashboard", label: "Dashboard", icon: "dashboard", perm: "dashboard.view" },
   { href: "/users", label: "Users", icon: "user", perm: "users.manage" },
 ];
 

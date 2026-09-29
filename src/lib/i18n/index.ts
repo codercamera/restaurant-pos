@@ -9,6 +9,7 @@ import menu from "./th/menu";
 import misc from "./th/misc";
 import users from "./th/users";
 import tablelinks from "./th/tablelinks";
+import dashboard from "./th/dashboard";
 
 export type Lang = "en" | "th";
 export const LANGS: Lang[] = ["en", "th"];
@@ -17,7 +18,7 @@ export const DEFAULT_LANG: Lang = "en";
 
 export const isLang = (v: unknown): v is Lang => v === "en" || v === "th";
 
-const TH: Record<string, string> = { ...common, ...order, ...checkout, ...tables, ...kitchen, ...menu, ...misc, ...users, ...tablelinks };
+const TH: Record<string, string> = { ...common, ...order, ...checkout, ...tables, ...kitchen, ...menu, ...misc, ...users, ...tablelinks, ...dashboard };
 
 export type Params = Record<string, string | number>;
 export type TFn = (key: string, params?: Params) => string;
