@@ -8,6 +8,7 @@ import { useLang } from "@/lib/i18n/client";
 import { computeTotals, formatMoney, round2 } from "@/lib/money";
 import type { Branch, Category, DiningTable, Order, OrderItem, OrderType, SellableItem } from "@/lib/types";
 import { OptionsDialog, type PickedOptions } from "./OptionsDialog";
+import { TablePicker } from "./TablePicker";
 import { cancelOrder, saveOrder, voidItem } from "./actions";
 
 type DraftLine = {
@@ -49,7 +50,7 @@ export function OrderScreen({
 }: {
   categories: Category[];
   items: SellableItem[];
-  tables: Pick<DiningTable, "id" | "name" | "zone" | "seats">[];
+  tables: Pick<DiningTable, "id" | "name" | "zone" | "seats" | "status">[];
   order: Order | null;
   orderItems: OrderItem[];
   presetTableId: string | null;
@@ -63,6 +64,8 @@ export function OrderScreen({
   const [search, setSearch] = useState("");
   const [orderType, setOrderType] = useState<OrderType>(order?.order_type ?? (presetTableId ? "dine_in" : "dine_in"));
   const [tableId, setTableId] = useState<string>(presetTableId ?? "");
+  const [pickTable, setPickTable] = useState(false);
+  const selectedTable = tables.find((tb) => tb.id === tableId) ?? null;
   const [guests, setGuests] = useState<number>(order?.customer_count ?? (presetTableId ? 2 : 0));
   const [customerName, setCustomerName] = useState(order?.customer_name ?? "");
   const [notes, setNotes] = useState(order?.notes ?? "");
@@ -335,22 +338,18 @@ export function OrderScreen({
           </div>
           {orderType === "dine_in" ? (
             <div className="flex gap-2">
-              <label className="sr-only" htmlFor="table-select">{t("Table")}</label>
-              <select
-                id="table-select"
-                value={tableId}
+              <button
+                type="button"
                 disabled={closed}
-                onChange={(e) => setTableId(e.target.value)}
-                className={`grow h-11 rounded-[10px] border bg-panel px-3 text-sm font-semibold ${needsTable && draft.length ? "border-accent" : "border-line"}`}
+                onClick={() => setPickTable(true)}
+                aria-haspopup="dialog"
+                className={`grow min-w-0 h-11 rounded-[10px] border bg-panel px-3 text-sm font-semibold flex items-center gap-2 text-left disabled:opacity-60 ${needsTable && draft.length ? "border-accent" : "border-line"}`}
               >
-                <option value="">{t("Choose table…")}</option>
-                {tables.map((tb) => (
-                  <option key={tb.id} value={tb.id}>
-                    {t("Table {n}", { n: tb.name })}
-                    {tb.zone ? ` · ${tb.zone}` : ""} ({tb.seats})
-                  </option>
-                ))}
-              </select>
+                <Icon name="tables" size={16} />
+                <span className="grow truncate">
+                  {selectedTable ? `${t("Table {n}", { n: selectedTable.name })}${selectedTable.zone ? ` · ${t(selectedTable.zone)}` : ""}` : t("Choose table…")}
+                </span>
+              </button>
               <div className="flex items-center gap-0.5 rounded-[10px] border border-line px-0.5" role="group" aria-label={t("Guests")}>
                 <button type="button" aria-label={t("Fewer guests")} onClick={() => setGuests((g) => Math.max(0, g - 1))} className="size-10 flex items-center justify-center">
                   <Icon name="minus" size={14} stroke={2.2} />
@@ -519,6 +518,17 @@ export function OrderScreen({
             addLine(dialogItem, picked);
             setDialogItem(null);
           }}
+        />
+      )}
+      {pickTable && (
+        <TablePicker
+          tables={tables}
+          value={tableId}
+          onPick={(id) => {
+            setTableId(id);
+            setPickTable(false);
+          }}
+          onClose={() => setPickTable(false)}
         />
       )}
     </div>

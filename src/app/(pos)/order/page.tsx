@@ -15,8 +15,8 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
 
   const [{ categories, items }, tables] = await Promise.all([
     loadSellableMenu({ companyId: ctx.staff.company_id, branchId: ctx.branch.id }, lang),
-    db.q<Pick<DiningTable, "id" | "name" | "zone" | "seats">>(
-      "select id, name, zone, seats from dining_tables where branch_id = ?1 and is_active = 1 order by zone, name",
+    db.q<Pick<DiningTable, "id" | "name" | "zone" | "seats" | "status">>(
+      "select id, name, zone, seats, status from dining_tables where branch_id = ?1 and is_active = 1 order by zone, name",
       [branch.id]
     ),
   ]);
