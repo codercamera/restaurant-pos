@@ -14,6 +14,7 @@ export const PERMISSIONS = [
   "menu.manage", // Menu page: dishes, categories, prices, Thai names
   "users.manage", // Users page: create users, change roles, deactivate
   "dashboard.view", // Dashboard: sales summary numbers
+  "rewards.manage", // Rewards page: point rules, customers, manual point adjustments
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -54,6 +55,7 @@ export const NAV: { href: string; perm: Permission }[] = [
   { href: "/tables", perm: "tables.view" },
   { href: "/kitchen", perm: "kitchen.view" },
   { href: "/menu", perm: "menu.manage" },
+  { href: "/rewards", perm: "rewards.manage" },
   { href: "/users", perm: "users.manage" },
 ];
 

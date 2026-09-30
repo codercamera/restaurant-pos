@@ -6,6 +6,8 @@ import { actionError, getContext } from "@/lib/session";
 import { freeTableStmt, getOrder, getOrderItems, lineTotal, paidAmount, recalcOrder } from "@/lib/orders";
 import { round2 } from "@/lib/money";
 import { getT } from "@/lib/i18n/server";
+import { getLoyaltySettings, pointsFor } from "@/lib/loyalty";
+import { maskPhone } from "@/lib/phone";
 import type { ActionResult, PaymentMethod } from "@/lib/types";
 
 export type PaymentInput = {
@@ -76,7 +78,28 @@ export async function takePayment(input: PaymentInput): Promise<ActionResult<Pay
         "select method, amount, received_amount, change_amount, paid_at from payments where order_id = ?1 order by paid_at",
         [input.orderId]
       );
+      // Reward points: redeem what was applied, earn on the net bill, both only when the bill is fully paid.
+      const rw = await db.one<{ customer_id: string | null; points_redeemed: number }>("select customer_id, points_redeemed from orders where id = ?1", [input.orderId]);
+      let loyalty: { phone: string; name: string | null; earned: number; redeemed: number; balance: number } | null = null;
+      if (rw?.customer_id) {
+        const settings = await getLoyaltySettings(staff.company_id);
+        const cust = await db.one<{ phone: string; name: string | null; points: number }>("select phone, name, points from customers where id = ?1 and company_id = ?2", [rw.customer_id, staff.company_id]);
+        if (cust) {
+          const redeemed = Number(rw.points_redeemed) || 0;
+          if (redeemed > cust.points) return { ok: false, error: t("Not enough points") };
+          const net = Math.max(0, round2(Number(order?.subtotal ?? 0) - Number(order?.discount_total ?? 0)));
+          const earned = pointsFor(net, settings);
+          loyalty = { phone: cust.phone, name: cust.name, earned, redeemed, balance: cust.points - redeemed + earned };
+          if (redeemed > 0) stmts.push(stmt("insert into point_ledger (id, customer_id, order_id, kind, points, note, staff_id) values (?1, ?2, ?3, 'redeem', ?4, null, ?5)", newId(), rw.customer_id, input.orderId, -redeemed, staff.id));
+          if (earned > 0) stmts.push(stmt("insert into point_ledger (id, customer_id, order_id, kind, points, note, staff_id) values (?1, ?2, ?3, 'earn', ?4, null, ?5)", newId(), rw.customer_id, input.orderId, earned, staff.id));
+          stmts.push(
+            stmt("update customers set points = points - ?2 + ?3, total_spent = total_spent + ?4, visits = visits + 1 where id = ?1", rw.customer_id, redeemed, earned, net),
+            stmt("update orders set points_earned = ?2 where id = ?1", input.orderId, earned)
+          );
+        }
+      }
       const snapshot = {
+        loyalty: loyalty ? { phone: maskPhone(loyalty.phone), name: loyalty.name, earned: loyalty.earned, redeemed: loyalty.redeemed, balance: loyalty.balance } : null,
         branch: { name: branch.name, currency: branch.currency, tax_rate: branch.tax_rate, service_charge_rate: branch.service_charge_rate },
         order: { ...order, status: "completed", closed_at: paidAt },
         items: items.map((i) => {

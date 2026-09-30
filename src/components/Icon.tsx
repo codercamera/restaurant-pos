@@ -23,7 +23,8 @@ type IconName =
   | "alert"
   | "close"
   | "send"
-  | "dashboard";
+  | "dashboard"
+  | "gift";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   orders: (<><path d="M6 2h12l1 4H5z" /><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6" /><path d="M9 11h6M9 15h4" /></>),
@@ -50,6 +51,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   alert: (<><path d="M12 3l10 18H2z" /><path d="M12 10v4M12 17.5v.5" /></>),
   close: <path d="M6 6l12 12M18 6L6 18" />,
   dashboard: (<><rect x="3" y="3" width="7" height="9" rx="1.5" /><rect x="14" y="3" width="7" height="5" rx="1.5" /><rect x="14" y="12" width="7" height="9" rx="1.5" /><rect x="3" y="16" width="7" height="5" rx="1.5" /></>),
+  gift: (<><rect x="3" y="8" width="18" height="5" rx="1" /><path d="M5 13v8h14v-8M12 8v13M12 8c-2 0-4-1-4-3a2 2 0 0 1 4 0c0-2 4-2 4 0 0 2-2 3-4 3z" /></>),
   send: (<><path d="M4 12l16-8-6 16-3-7z" /><path d="M11 13l9-9" /></>),
 };
 

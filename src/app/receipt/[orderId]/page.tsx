@@ -24,6 +24,7 @@ type Snapshot = {
   items: { name: string; name_th?: string; quantity: number; unit_price: number; options: { name: string; name_th?: string; price_delta: number }[]; total: number }[];
   payments: { method: string; amount: number; received_amount: number | null; change_amount: number | null }[];
   cashier: string;
+  loyalty?: { phone: string; name: string | null; earned: number; redeemed: number; balance: number } | null;
 };
 
 const METHOD: Record<string, string> = { cash: "Cash", card: "Card", qr_promptpay: "PromptPay", other: "Other" };
@@ -96,6 +97,15 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
             )}
           </div>
         ))}
+        {s.loyalty && (
+          <>
+            <hr className="my-3 border-dashed border-black" />
+            <Line label={t("Member")} value={s.loyalty.phone} />
+            {s.loyalty.redeemed > 0 && <Line label={t("Points used")} value={`-${s.loyalty.redeemed.toLocaleString()}`} />}
+            <Line label={t("Points earned")} value={`+${s.loyalty.earned.toLocaleString()}`} />
+            <Line label={t("Points balance")} value={s.loyalty.balance.toLocaleString()} />
+          </>
+        )}
         <div className="text-center mt-4">{t("Served by {name}", { name: s.cashier })}</div>
         <div className="text-center">{t("Thank you!")}</div>
       </article>

@@ -5,6 +5,7 @@ import { ORDER_COLS, getOrderItems, recalcOrder } from "@/lib/orders";
 import { round2 } from "@/lib/money";
 import type { Order } from "@/lib/types";
 import { getT } from "@/lib/i18n/server";
+import { getLoyaltySettings } from "@/lib/loyalty";
 import { CheckoutScreen } from "./CheckoutScreen";
 
 export default async function CheckoutPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -33,6 +34,11 @@ export default async function CheckoutPage({ params }: { params: Promise<{ order
     ),
   ]);
   if (!raw) notFound();
+  const settings = await getLoyaltySettings(staff.company_id);
+  const link = await db.one<{ customer_id: string | null; points_redeemed: number; points_earned: number }>("select customer_id, points_redeemed, points_earned from orders where id = ?1", [orderId]);
+  const customer = link?.customer_id
+    ? await db.one<{ id: string; phone: string; name: string | null; points: number }>("select id, phone, name, points from customers where id = ?1 and company_id = ?2", [link.customer_id, staff.company_id])
+    : null;
   const paid = round2(payments.filter((p) => p.status === "completed").reduce((s, p) => s + p.amount, 0));
 
   return (
@@ -44,6 +50,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ order
       tableName={raw.table_name}
       serverName={raw.server_name ?? staff.full_name}
       branch={branch}
+      rewards={{ settings, customer, redeemed: Number(link?.points_redeemed ?? 0), earned: Number(link?.points_earned ?? 0) }}
     />
   );
 }

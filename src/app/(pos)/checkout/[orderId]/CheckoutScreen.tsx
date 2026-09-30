@@ -8,6 +8,7 @@ import { useLang } from "@/lib/i18n/client";
 import { computeTotals, formatMoney, ORDER_TYPE_LABEL, round2 } from "@/lib/money";
 import type { Branch, Order, OrderItem, PaymentMethod } from "@/lib/types";
 import { takePayment } from "./actions";
+import { RewardsPanel, type RewardsData } from "./RewardsPanel";
 
 const METHODS: { id: PaymentMethod; label: string; icon: "card" | "cash" | "qr" }[] = [
   { id: "cash", label: "Cash", icon: "cash" },
@@ -27,6 +28,7 @@ export function CheckoutScreen({
   tableName,
   serverName,
   branch,
+  rewards,
 }: {
   order: Order;
   items: OrderItem[];
@@ -35,6 +37,7 @@ export function CheckoutScreen({
   tableName: string | null;
   serverName: string;
   branch: Branch;
+  rewards: RewardsData;
 }) {
   const router = useRouter();
   const { t } = useLang();
@@ -161,6 +164,13 @@ export function CheckoutScreen({
                 <div className="font-mono text-5xl font-semibold">{money(lastChange)}</div>
               </div>
             )}
+            {rewards.customer && (rewards.earned > 0 || rewards.redeemed > 0) && (
+              <div className="rounded-2xl bg-accent-soft px-6 py-3 text-accent-text font-semibold">
+                {rewards.earned > 0 && <div>{t("+{n} points earned", { n: rewards.earned })}</div>}
+                {rewards.redeemed > 0 && <div>{t("{n} points used", { n: rewards.redeemed })}</div>}
+                <div className="text-sm font-normal">{t("Balance {n} points", { n: rewards.customer.points })}</div>
+              </div>
+            )}
             <div className="text-muted">
               {payments.map((p) => `${t(METHOD_LABEL[p.method] ?? p.method)} ${money(p.amount)}`).join(" · ")}
             </div>
@@ -183,6 +193,10 @@ export function CheckoutScreen({
                 </button>
               ))}
             </div>
+
+            {rewards.settings.enabled && (
+              <RewardsPanel orderId={order.id} locked={tipLocked} data={rewards} subtotal={order.subtotal} currency={cur} />
+            )}
 
             <div className="flex flex-wrap gap-6">
               <div className="flex flex-col gap-2 grow">

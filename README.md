@@ -61,3 +61,7 @@ Staff invites / PIN login, option-group editor on the Menu page, discounts UI, r
 ## Table ordering links (no login)
 
 Every table has a permanent link `/t/<token>` (admin: Tables → QR codes). Guests scan the QR code, browse the menu and send an order straight to the kitchen; payment stays with staff. Orders are marked "Guest QR order". Admins can switch a table's link off or generate a new one (the old QR stops working). Limits: 20 lines per submit, quantity ≤ 20, and at most 40 not-yet-started lines per table.
+
+## Reward points (Thai phone number)
+
+At checkout the cashier adds the customer's Thai mobile number (08x/09x/06x, +66 accepted; stored as 10 digits). Points are earned on the net bill (after discount, before tax/service/tip) once it is fully paid, and can be used as a baht discount before the first payment. Admin → **Rewards** sets the rules (baht per point, baht value per point used, minimum to redeem), lists members and adjusts points by hand. Migration: `db/migrations/0006_rewards.sql`.
