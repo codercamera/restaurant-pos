@@ -482,9 +482,15 @@ export function FloorPlan({
                 </Link>
               )}
               {selOrder ? (
+                selOrder.status === "served" ? (
                 <Link href={`/checkout/${selOrder.id}`} className="h-12 rounded-xl border border-line text-sm font-semibold flex items-center justify-center">
                   {tr("Take payment")}
                 </Link>
+              ) : (
+                <div className="h-12 rounded-xl border border-line text-sm font-semibold flex items-center justify-center text-muted-2">
+                  {tr("Serve the order before payment")}
+                </div>
+              )
               ) : (
                 <div className="flex gap-2.5">
                   {(["available", "reserved", "cleaning"] as TableStatus[]).map((s) => (

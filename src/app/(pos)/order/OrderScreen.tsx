@@ -479,7 +479,8 @@ export function OrderScreen({
               </button>
               <button
                 type="button"
-                disabled={pending || !hasAnything}
+                disabled={pending || !hasAnything || (orderType === "dine_in" && order?.status !== "served")}
+                title={orderType === "dine_in" && order?.status !== "served" ? t("Dine-in orders must be served before payment") : undefined}
                 onClick={() => submit(true)}
                 className="grow-[1.4] h-14 rounded-xl bg-accent text-white text-base font-bold disabled:opacity-40 hover:bg-accent-dark"
               >

@@ -27,12 +27,13 @@ export async function takePayment(input: PaymentInput): Promise<ActionResult<Pay
     if (!isUuid(input.orderId)) return { ok: false, error: t("Order not found") };
     if (!["cash", "card", "qr_promptpay", "other"].includes(input.method)) return { ok: false, error: t("Unknown payment method") };
 
-    const o = await db.one<{ status: string; table_id: string | null }>(
-      "select status, table_id from orders where id = ?1 and branch_id = ?2",
+    const o = await db.one<{ status: string; table_id: string | null; order_type: string }>(
+      "select status, table_id, order_type from orders where id = ?1 and branch_id = ?2",
       [input.orderId, branch.id]
     );
     if (!o) return { ok: false, error: t("Order not found") };
     if (o.status === "completed" || o.status === "cancelled") return { ok: false, error: t("This order is already closed") };
+    if (o.order_type === "dine_in" && o.status !== "served") return { ok: false, error: t("Dine-in orders must be served before payment") };
 
     let paid = await paidAmount(input.orderId);
     // Tip can only change before the first payment.

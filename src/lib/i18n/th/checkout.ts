@@ -1,6 +1,8 @@
 // Thai translations (English source string -> Thai): checkout, receipt, orders list.
 const th: Record<string, string> = {
   // Checkout actions
+  "Dine-in orders must be served before payment": "ออเดอร์ทานที่ร้านต้องเสิร์ฟก่อนจึงจะชำระเงินได้",
+  "Serve the order before payment": "เสิร์ฟออเดอร์ก่อนชำระเงิน",
   "Order not found": "ไม่พบออเดอร์",
   "Unknown payment method": "ไม่รู้จักวิธีชำระเงิน",
   "This order is already closed": "ออเดอร์นี้ปิดแล้ว",

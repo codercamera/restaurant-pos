@@ -68,7 +68,8 @@ export function CheckoutScreen({
 
   const received = cents ? Number(cents) / 100 : 0;
   const changeDue = round2(received - amount);
-  const canCharge = !closed && amount > 0 && (method !== "cash" || received >= amount);
+  const notServed = order.order_type === "dine_in" && order.status !== "served" && !closed;
+  const canCharge = !closed && !notServed && amount > 0 && (method !== "cash" || received >= amount);
 
   const press = (k: string) =>
     setCents((c) => {
@@ -293,6 +294,11 @@ export function CheckoutScreen({
             {notice && <p role="status" className="rounded-xl bg-good-soft px-4 py-3 font-semibold text-good-dark">{notice}</p>}
             {error && <p role="alert" className="rounded-xl bg-accent-soft px-4 py-3 font-semibold text-accent-text">{error}</p>}
 
+            {notServed && (
+              <div role="alert" className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold">
+                {t("Dine-in orders must be served before payment")}
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               {payments.length > 0 && (
                 <div className="text-sm text-muted">
