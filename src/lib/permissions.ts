@@ -26,13 +26,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
 
 export const isRole = (v: unknown): v is Role => typeof v === "string" && (ROLES as readonly string[]).includes(v);
 
-/** Never granted to anyone but admin, even if listed in ROLE_PERMISSIONS above. */
-const ADMIN_ONLY: readonly Permission[] = ["dashboard.view"];
-
-export const permsOf = (role: string): readonly Permission[] => {
-  if (!isRole(role)) return [];
-  return role === "admin" ? ROLE_PERMISSIONS.admin : ROLE_PERMISSIONS[role].filter((p) => !ADMIN_ONLY.includes(p));
-};
+export const permsOf = (role: string): readonly Permission[] => (isRole(role) ? ROLE_PERMISSIONS[role] : []);
 
 export const can = (role: string, perm: Permission | Permission[]): boolean => {
   const have = permsOf(role);
@@ -48,12 +42,12 @@ export const ROLE_LABEL: Record<Role, string> = {
 
 /** Screens in the order we look for a landing page after sign-in. */
 export const NAV: { href: string; perm: Permission }[] = [
-  { href: "/dashboard", perm: "dashboard.view" }, // admin lands here
   { href: "/order", perm: "order.use" },
   { href: "/orders", perm: "orders.view" },
   { href: "/tables", perm: "tables.view" },
   { href: "/kitchen", perm: "kitchen.view" },
   { href: "/menu", perm: "menu.manage" },
+  { href: "/dashboard", perm: "dashboard.view" },
   { href: "/users", perm: "users.manage" },
 ];
 
