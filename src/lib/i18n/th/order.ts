@@ -59,6 +59,7 @@ const th: Record<string, string> = {
   "Receipt": "ใบเสร็จ",
   "Saving…": "กำลังบันทึก…",
   "Send to kitchen": "ส่งเข้าครัว",
+  "Make order": "สั่งอาหาร",
   "Charge {amount}": "ชำระ {amount}",
   "Cancel order": "ยกเลิกออเดอร์",
 

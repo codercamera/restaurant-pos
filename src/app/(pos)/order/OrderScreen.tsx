@@ -475,7 +475,7 @@ export function OrderScreen({
                 onClick={() => submit(false)}
                 className="grow h-14 rounded-xl border border-ink bg-panel text-base font-bold disabled:opacity-40 flex items-center justify-center gap-2"
               >
-                <Icon name="send" size={18} /> {pending ? t("Saving…") : t("Send to kitchen")}
+                <Icon name="send" size={18} /> {pending ? t("Saving…") : t("Make order")}
               </button>
               <button
                 type="button"
