@@ -27,7 +27,7 @@ export function TablePicker({ tables, value, onPick, onClose }: { tables: Tbl[];
   const zones = [...new Set(tables.map((x) => x.zone || "Main hall"))];
   return (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={t("Choose table…")} className="w-full max-w-[480px] max-h-[85dvh] flex flex-col rounded-t-2xl sm:rounded-2xl bg-panel shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label={t("Choose table…")} className="w-full max-w-[480px] h-[75dvh] sm:h-auto sm:max-h-[85dvh] flex flex-col rounded-t-2xl sm:rounded-2xl bg-panel shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center p-4 border-b border-line">
           <h2 className="grow font-display text-xl font-bold">{t("Choose table…")}</h2>
           <button type="button" aria-label={t("Close")} onClick={onClose} className="size-11 grid place-items-center"><Icon name="close" /></button>
